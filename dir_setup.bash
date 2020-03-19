@@ -1,72 +1,67 @@
 #!/usr/bin/env bash
 
-#creates directory tree for t1 and asl processing pipeline
+# creates directory tree for t1 and asl processing pipeline
 
-read -rsp $'Be sure the current working directory is in the listing of subject files. 
-Press any key to continue or ctrl+C to exit...\n' -n1 key
+prompt1() {
+    declare -a arr_time=(
+    'Time Points:'
+    '000- Baseline' 
+    '010- 10 mins' 
+    '015- 15 mins'
+    '020- 20 mins'
+    '025- 25 mins'
+    '030- 30 mins'
+    '035- 35 mins'
+    '045- 45 mins'
+    '050- 50 mins'
+    '055- 55 mins'
+    '060- 60 mins'
+    '075- 75 mins'
+    '090- 90 mins'
+    '105- 105 mins'
+    '120- 120 mins')
+    for i in "${arr_time[@]}"; do
+        printf "%s\n" "$i"
+    done
+}
 
-#checks that all raw files exist
-#if not, list them
+prompt2() {
+    TIMEPOINT=""
+    until [ "${#TIMEPOINT}" -eq 3 ]; do    
+        local prompt="Enter timepoint for ${FOLDER}: "
+        read -p "${prompt}" TIMEPOINT
+    done
+    echo "$TIMEPOINT"
+}
 
-find . -type d -empty
-
-read -rsp $'If any directories are empty, press ctrl+C to quit and rectify. 
-Otherwise, press any key to continue...\n' -n1 key
-
-#for subject file
-for SUBJECT in "${1}"*; do
-	#print the subject folder name in the terminal
-	echo "Beginning ---- $SUBJECT" 
-	(
-		cd ./"${SUBJECT}"
-		#list all asl folders
-		ls -d *contrast* -1 
-		#for files in subject dir
-		for FOLDER in *; do
-			#check if $FOLDER is a directory and its name contains a particular word/phrase
-			if [[ -d "$FOLDER" && "$FOLDER" = *contrast** ]]; then 
-				#get input from user
-				read -p "Enter timepoint for ${FOLDER}:
-				0- Baseline
-				10- 10 mins
-				15- 15 mins
-				20- 20 mins
-				25- 25 mins
-				30- 30 mins
-				35- 35 mins
-				45- 45 mins
-				50- 50 mins
-				55- 55 mins
-				60- 60 mins
-				75- 75 mins
-				90- 90 mins
-				105- 105 mins
-				120- 120 mins
-				" TIMEPOINT 
-				#create new name of folder
-				NEWNAME="asl_${TIMEPOINT}_mins" 
-				#change name of folder
-				mv "$FOLDER" "$NEWNAME" 
-			#check if $FOLDER is a directory and its name contains a particular word/phrase
-			elif [[ -d "$FOLDER" && "$FOLDER" = *T1** ]]; then 
-				#create new name of folder
-				NEWNAME="t1" 
-				#change name of folder
-				mv "$FOLDER" "$NEWNAME" 
-			fi
-			(
-				#make subshell to cd
-				cd ./"$NEWNAME" 	
-				#check if subdirectory exists; if not, create it
-				if [ ! -d "raw" ]; then 
-					mkdir "raw"
-				fi
-				#check if subdirectory exists; if not, create it
-				if [ ! -d "proc" ]; then 
-					mkdir "proc"
-				fi				
-			)
-		done
-	)
-	echo "Completed ---- $SUBJECT"
+# get list of subjects
+shopt -s nullglob
+arr_subj=(*"$1"*)
+for SUBJECT in "${arr_subj[@]}"; do
+    # get and list all asl folders
+    arr_asl=("${SUBJECT}"/*contrast*)
+    if [ "${#arr_asl[@]}" -gt 0 ]; then
+        echo
+        echo "ASL folders:"
+        printf "%s\n" "${arr_asl[@]}"
+        echo
+        prompt1
+        # loop through asl folders
+        for FOLDER in "${arr_asl[@]}"; do
+            # get input from user
+            TIMEPOINT=$(prompt2)
+            # change name of folder, make subdirectories
+            mv "$FOLDER" "./${SUBJECT}/asl_${TIMEPOINT}_mins"
+            mkdir -p "./${SUBJECT}/asl_${TIMEPOINT}_mins"/{raw,proc}
+        done
+    fi
+    # rename t1 folder, make sub directories
+    arr_t1=("${SUBJECT}"/*T1*)
+    if [ "${#arr_t1[@]}" -gt 0 ]; then
+        mv "${arr_t1[-1]}" "./${SUBJECT}/t1"
+        mkdir -p "./${SUBJECT}/t1"/{raw,proc}
+    fi
+    echo
+    echo "Completed ---- ${SUBJECT}"
+    echo "-----------------------------------------------------"
 done
