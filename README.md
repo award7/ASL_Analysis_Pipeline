@@ -52,12 +52,12 @@ The pipeline workflow (corresponding flags in parentheses):
 
 1. Download this repo, unzip into a folder, and add the folder to your PATH.
 
-2. Navigate (via terminal) to the listing of folders that house the MRI data. The directory tree should follow this design:
-    a. unproc (unprocessed folder housing all subjects that need processed)  
-        i. Subject Folder  
-            1. ASL folder(s) named with "contrast" or "asl"  
-                a. Listing of various MRI scans
-            2. T1 folder
+2. Navigate (via terminal) to the listing of folders that house the MRI data. The directory tree should follow this design:  
+    --> unproc (unprocessed folder housing all subjects that need processed)  
+        --> Subject Folder  
+            --> ASL folder(s) named with "contrast" or "asl"  
+                --> Listing of various MRI scans
+            --> T1 folder
 
 3. Run `aslproc.bash -h` to view usage help 
   
