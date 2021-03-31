@@ -59,19 +59,20 @@ class AslProc:
             "-o",
             "--output",
             type=str,
-            default=os.getcwd(),
-            help="Output directory (default = %(default)s"
+            # default=os.getcwd(),
+            # help="Output directory (default = %(default)s"
         )
         parser.add_argument(
             "-f",
             "--filename",
             type=str,
-            default=f"t1_{self._condense_id()}",
-            help="Output file name (default = %(default)s)"
+            # default=f"t1_{self._condense_id()}",
+            # help="Output file name (default = %(default)s)"
         )
         args = self._parse_args(parser, argin)
-        pproc = Preprocess()
-        pproc.dcm2niix(args.input, args.output, args.filename)
+        # pproc = Preprocess()
+        # pproc.dcm2niix(self.id, args.input, args.output, args.filename)
+        print(args.filename)
 
     def to3d(self, argin: list) -> None:
         parser = argparse.ArgumentParser(
@@ -96,9 +97,10 @@ class AslProc:
             "-p",
             "--prefix",
             type=str,
-            default=f"zt_{self._condense_id()}_{self._timestamp()}",
+            # default=f"zt_{self._condense_id()}_{self._timestamp()}",
             help="Output file name prefix (default = %(default)s)"
         )
+        # TODO: remove arg?
         parser.add_argument(
             "-nt",
             type=int,
@@ -123,6 +125,7 @@ class AslProc:
             required=True,
             help="Input file"
         )
+        # TODO: remove arg?
         parser.add_argument(
             "-o",
             "--outfile",
@@ -130,11 +133,12 @@ class AslProc:
             default=os.getcwd(),
             help="Output directory (default = %(default)s)"
         )
+        # TODO: remove arg?
         parser.add_argument(
             "-p",
             "--prefix",
             type=str,
-            default=f"zt_{self._condense_id()}_{self._timestamp()}",
+            # default=f"zt_{self._condense_id()}_{self._timestamp()}",
             help="Output file name prefix (default = %(default)s"
         )
         args = self._parse_args(parser, argin)
@@ -159,11 +163,11 @@ class AslProc:
             help="Output directory (default = %(default)s)"
         )
         parser.add_argument(
-            "-f",
-            "--filename",
+            "-p",
+            "--prefix",
             type=str,
-            default=f"asl_fmap_{self._condense_id()}_{self._timestamp()}.nii",
-            help="Output file name (default = %(default)s)"
+            # default=f"asl_fmap_{self._condense_id()}_{self._timestamp()}.nii",
+            help="Output file name prefix (default = %(default)s)"
         )
         args = self._parse_args(parser, argin)
 
@@ -187,11 +191,11 @@ class AslProc:
             help="Output directory (default = %(default)s)"
         )
         parser.add_argument(
-            "-f",
-            "--filename",
+            "-p",
+            "--prefix",
             type=str,
-            default=f"pdmap_{self._condense_id()}_{self._timestamp()}.nii",
-            help="Output file name (default = %(default)s)"
+            # default=f"pdmap_{self._condense_id()}_{self._timestamp()}.nii",
+            help="Output file name prefix (default = %(default)s)"
         )
         args = self._parse_args(parser, argin)
 

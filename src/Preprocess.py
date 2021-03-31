@@ -3,32 +3,63 @@ import docker
 from DockerImageBuilder import Builder
 
 
+# decorators
+def _validate_args(func):
+    def wrapper(**kwargs):
+        if 'id' in kwargs:
+            id = kwargs['id']
+            if not type(id) == str:
+                raise TypeError(f"{id} is required to be a string")
+        if 'indir' in kwargs:
+            indir = kwargs['indir']
+            if not os.path.isdir(indir):
+                raise NotADirectoryError(f"{indir} is not a valid directory")
+        if 'outdir' in kwargs:
+            outdir = kwargs['outdir']
+            if outdir is not None:
+                if not os.path.isdir(outdir):
+                    raise NotADirectoryError(f"{outdir} is not a valid directory")
+            else:
+                kwargs['outdir'] = kwargs.get('indir')
+        if 'infile' in kwargs:
+            infile = kwargs['infile']
+            if not os.path.isfile(infile):
+                raise FileNotFoundError(f"{infile} not found")
+            else:
+                # strip away path if needed
+                kwargs['infile'] = os.path.split(infile)[1]
+        if 'fname' in kwargs:
+            fname = kwargs['fname']
+            if fname is not None:
+                # remove file extension (just in case)
+                kwargs['fname'] = os.path.splitext(str(fname))[0]
+        func(**kwargs)
+    return wrapper
+
+
 class Preprocess:
 
     def __init__(self):
         self.client = docker.from_env()
         self.builder = Builder()
 
+    # methods
+    @_validate_args
+    def dcm2niix(self, id: str,  indir: str, outdir: str = None, fname: str = None) -> None:
+        """ Convert DICOM images to Nifti format via dcm2niix """
 
-    def dcm2niix(self, indir: str, outdir: str, fname: str) -> None:
-        """Convert DICOM images to Nifti format via dcm2niix"""
-        # validate inputs
-        if not os.path.isdir(indir):
-            raise NotADirectoryError(f"{indir} is not a valid directory")
-        if not os.path.isdir(outdir):
-            raise NotADirectoryError(f"{outdir} is not a valid directory")
-        if not type(fname) == str:
-            raise TypeError(f"{fname} is required to be a string")
+        # make default fname if needed
+        if fname is None:
+            fname = f"t1_{self._condense_id(id)}"
 
-        # remove file extension (just in case)
-        fname = os.path.splitext(fname)[0]
-
-        # make image if doesn't exist
-        img = "aslproc/dcm2niix"
-        if img not in self.client.images.list():
+        """ make docker image if doesn't exist """
+        img = "asl/dcm2niix"
+        try:
+            self.client.images.get(img)
+        except docker.errors.ImageNotFound:
             self.builder.dcm2niix()
 
-        # setup container parameters
+        """ setup container parameters """
         vols = {
             indir: {
                 'bind': '/mnt/data/in',
@@ -40,16 +71,101 @@ class Preprocess:
             }
         }
 
-        # run container
+        """ run container """
+        cmd = f"dcm2niix -f {fname} -o /mnt/data/out /mnt/data/in"
+        self._run_container(cmd, img, vols=vols, wd="/mnt/data/in")
+
+    @_validate_args
+    def to3d(self, id: str, indir: str, outdir: str = None, fname: str = None, nt: int = 0, tr: int = 1000) -> None:
+        """ Convert raw ASL images to 3D volume via AFNI """
+
+        # make default fname or remove file extension (just in case)
+        if fname is None:
+            basename = os.path.basename(indir)
+            fname = f"zt_{self._condense_id(id)}_{basename}"
+
+        # get list of raw .dcm files
+        dcm = []
+        for file in os.listdir(indir):
+            if file.endswith(".dcm"):
+                dcm.append(file)
+
+        # set nt
+        if nt == 0:
+            nt = len(dcm)/2
+
+        """ make docker image if doesn't exist """
+        img = "asl/afni"
+        try:
+            self.client.images.get(img)
+        except docker.errors.ImageNotFound:
+            self.builder.afni()
+
+        """ setup container parameters """
+        vols = {
+            indir: {
+                'bind': '/mnt/data/in',
+                'mode': 'rw'
+            },
+            outdir: {
+                'bind': '/mnt/data/out',
+                'mode': 'rw'
+            }
+        }
+
+        """ run container """
+        cmd = f"to3d -prefix {fname} -fse -time:zt {nt} 2 {tr} seq+z {dcm}"
+        self._run_container(cmd, img, vols=vols, wd="/mnt/data/in")
+
+    @_validate_args
+    def pcasl_3df(self, id: str, infile: str) -> None:
+        """ Create quantitative CBF maps """
+
+        """ make docker image if doesn't exist """
+        img = "asl/afni"
+        try:
+            self.client.images.get(img)
+        except docker.errors.ImageNotFound:
+            self.builder.afni()
+
+        """ setup container parameters """
+        indir = os.path.split(os.path.abspath(infile))[0]
+        vols = {
+            indir: {
+                'bind': '/mnt/data/in',
+                'mode': 'rw'
+            },
+        }
+
+        """ run container """
+        cmd = f"3df_pcasl -nex 3 -odata {infile}"
+        self._run_container(cmd, img, vols=vols, wd="/mnt/data/in")
+
+    @_validate_args
+    def fmap(self, id: str, indir: str, outdir: str = None, fname: str = None) -> None:
+        pass
+
+    @_validate_args
+    def pdmap(self, id: str, indir: str, outdir: str = None, fname: str = None) -> None:
+        pass
+
+    @_validate_args
+    def segment(self, id: str, indir: str, outdir: str = None, fname: str = None) -> None:
+        pass
+
+    def _run_container(self, img: str, cmd: str, name: str = None, vols: dict = None, wd: str = None) -> None:
         self.client.containers.run(
-            f"dcm2niix -f {fname} -o /mnt/data/out /mnt/data/in",
             image=img,
-            name="dcm2niix_cont",
+            command=cmd,
+            name=name,
             volumes=vols,
-            working_dir='/mnt/data/in',
+            working_dir=wd,
             remove=True
         )
 
+    @staticmethod
+    def _condense_id(id: str) -> str:
+        return id.replace("_","")
 
 class pproc:
     # TODO: switch inputs to argparse input
