@@ -81,6 +81,10 @@ RUN export TMPDIR="$(mktemp -d)" \
     && /opt/spm12-r7771/run_spm12.sh /opt/matlabmcr-2010a/v713 quit \
     && sed -i '$iexport SPMMCRCMD=\"/opt/spm12-r7771/run_spm12.sh /opt/matlabmcr-2010a/v713 script\"' $ND_ENTRYPOINT
 
+# don't know how tf! I'm to use this image because documentation is lacking
+# so set up an env variable then follow it with a valid spm command, being 'script', 'function', 'batch', 'eval'
+ENV SPM="/opt/spm12-r7219/run_spm.sh $MATLABCMD"
+
 RUN echo '{ \
     \n  "pkg_manager": "apt", \
     \n  "instructions": [ \
