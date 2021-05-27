@@ -5,10 +5,10 @@
 % img = Image to smooth 
 %       (char | str)
 %
-% 'output' = Save path (default = T1ProcessedDir)
-%            (char | str)
-%
 % Optional arguments:
+%
+% 'outdir' = Save path (default = T1ProcessedDir)
+%            (char | str)
 % 
 % 'fwhm' = Full-width half max (default = [5 5 5])
 %          (single | double)
@@ -28,18 +28,20 @@ num_args = evalin('base', 'numel(inputs)');
 
 % set required args
 img = inputs{1};
-outdir = inputs{2};
 
 % set default values for optional args
+[outdir, ~, ~] = fileparts(img);
 prefix = 's';
 fwhm = [5 5 5];
 
 % parse name-value pairs
-for k = 3:num_args
-    % names are passed on the odd index
-    if mod(k,2)
+for k = 2:num_args
+    % names are passed on the even index
+    if ~mod(k,2)
         arg_name = inputs{k};
         switch arg_name
+            case 'outdir'
+                outdir = inputs{k+1};
             case 'prefix'
                 prefix = inputs{k+1};
             case 'fwhm'

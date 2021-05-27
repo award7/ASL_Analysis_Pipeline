@@ -79,7 +79,18 @@ RUN export TMPDIR="$(mktemp -d)" \
     && chmod -R 777 /opt/spm12-r7771 \
     && rm -rf /tmp/spm* \
     && /opt/spm12-r7771/run_spm12.sh /opt/matlabmcr-2010a/v713 quit \
-    && sed -i '$iexport SPMMCRCMD=\"/opt/spm12-r7771/run_spm12.sh /opt/matlabmcr-2010a/v713 script\"' $ND_ENTRYPOINT
+    && sed -i '$iexport SPMMCRCMD=\"/opt/spm12-r7771/run_spm12.sh /opt/matlabmcr-2010a/v713 script\"' $ND_ENTRYPOINT \
+    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/bmask.m" \
+    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/brainVol.m" \
+    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/calcGlobal.m" \
+    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/coregister.m" \
+    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/invwarp.m" \
+    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/inwarpXgm.m" \
+    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/maskICV.m" \
+    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/normalize.m" \
+    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/segment.m" \
+    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/smooth.m"
+
 
 # don't know how tf! I'm to use this image because documentation is lacking
 # so set up an env variable then follow it with a valid spm command, being 'script', 'function', 'batch', 'eval'

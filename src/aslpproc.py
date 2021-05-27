@@ -1,7 +1,9 @@
+"""CLI parser for asl processing"""
+
 import os
 import sys
 import argparse
-from Preprocess import Preprocess
+# from preprocess import Preprocess
 
 
 class AslProc:
@@ -87,8 +89,8 @@ class AslProc:
         )
 
         args = self._parse_args(parser, argin)
-        # pproc = Preprocess()
-        # pproc.dcm2niix(self.id, args.input, args.output, args.filename)
+        # pproc = Preprocess(self.id)
+        # pproc.dcm2niix(args.input, args.output, args.filename)
         print(args)
 
     def to3d(self, argin: list) -> None:

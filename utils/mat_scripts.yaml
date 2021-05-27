@@ -1,0 +1,11 @@
+scripts:
+  - "bmask.m"
+  - "brainVol.m"
+  - "calcGlobal.m"
+  - "coregister.m"
+  - "invwarp.m"
+  - "inwarpXgm.m"
+  - "maskICV.m"
+  - "normalize.m"
+  - "segment.m"
+  - "smooth.m"

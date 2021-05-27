@@ -44,8 +44,7 @@ bias = inputs{3};
 other = '';
 interp = 7;
 prefix = 'w';
-[fpath, ~, ~] = fileparts(img);
-outdir = fpath;
+[outdir, ~, ~] = fileparts(img);
 
 % parse name-value args
 for k = 4:num_args
