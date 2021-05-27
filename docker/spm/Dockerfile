@@ -80,16 +80,17 @@ RUN export TMPDIR="$(mktemp -d)" \
     && rm -rf /tmp/spm* \
     && /opt/spm12-r7771/run_spm12.sh /opt/matlabmcr-2010a/v713 quit \
     && sed -i '$iexport SPMMCRCMD=\"/opt/spm12-r7771/run_spm12.sh /opt/matlabmcr-2010a/v713 script\"' $ND_ENTRYPOINT \
-    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/bmask.m" \
-    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/brainVol.m" \
-    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/calcGlobal.m" \
-    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/coregister.m" \
-    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/invwarp.m" \
-    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/inwarpXgm.m" \
-    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/maskICV.m" \
-    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/normalize.m" \
-    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/segment.m" \
-    && curl "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/smooth.m"
+    && mkdir -p /scripts \
+    && curl -K "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/bmask.m" -o bmask.m \
+    && curl -K "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/brainVol.m" -o brainVol.m \
+    && curl -K "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/calcGlobal.m" -o calcGlobal.m \
+    && curl -K "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/coregister.m" -o coregister.m \
+    && curl -K "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/invwarp.m" -o invwarp.m \
+    && curl -K "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/inwarpXgm.m" -o invwarpXgm.m \
+    && curl -K "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/maskICV.m" -o maskICV.m \
+    && curl -K "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/normalize.m" -o normalize.m \
+    && curl -K "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/segment.m" -o segment.m \
+    && curl -K "https://raw.githubusercontent.com/award7/ASL_Analysis_Pipeline/v2/src/mat/smooth.m" -o smooth.m
 
 
 # don't know how tf! I'm to use this image because documentation is lacking
