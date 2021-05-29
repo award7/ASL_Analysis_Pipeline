@@ -7,12 +7,14 @@ do
     case "$key" in 
         -nex)
             NEX="$2"
-            shift;
-            shift;
+            shift
+            shift
+            ;;
         -odata)
             ODATA="$2"
-            shift;
-            shift;
+            shift
+            shift
+            ;;
     esac
 done
 
