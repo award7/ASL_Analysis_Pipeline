@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/utils/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker/3df_pcasl/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/docker/3df_pcasl/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker/3df_pcasl/startup.sh" beforeDir="false" afterPath="$PROJECT_DIR$/docker/3df_pcasl/startup.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker/spm/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/docker/spm/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mat/segment.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/segment.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/aslpproc.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/aslpproc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/preprocess.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/preprocess.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/bind_volumes.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/bind_volumes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/condense_id.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/condense_id.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/image_builder.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/image_builder.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/image_checker.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/image_checker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/images.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/images.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/mat_scripts.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/mat_scripts.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/validation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/validation.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IgnoredFileRootStore">
+    <option name="generatedRoots">
+      <set>
+        <option value="C:\Users\Schragelab\Box\Data_Analysis_Transforms\asl\ASL_Analysis_Pipeline\.idea" />
+      </set>
+    </option>
+  </component>
+  <component name="ProjectId" id="1qLd9qld3g6WCpmMSeA3yF5nwRy" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings module-name="ASL_Analysis_Pipeline" is-module-sdk="true">
+        <option name="myUseModuleSdk" value="true" />
+        <option name="myModuleName" value="ASL_Analysis_Pipeline" />
+      </console-settings>
+    </option>
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\atward\Box\Data_Analysis_Transforms\asl\ASL_Analysis_Pipeline\src" />
+      <recent name="C:\Users\Schragelab\Box\Data_Analysis_Transforms\asl\ASL_Analysis_Pipeline\utils" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="configurationTypes">
+      <set>
+        <option value="PythonConfigurationType" />
+      </set>
+    </option>
+  </component>
+  <component name="RunManager" selected="Python tests.pytest for utils.validation">
+    <configuration name="preprocess" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ASL_Analysis_Pipeline" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="C:\Users\Schragelab\Box\Data_Analysis_Transforms\asl\ASL_Analysis_Pipeline\src\preprocess.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="sandbox" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ASL_Analysis_Pipeline" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/sandbox.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest for utils.validation" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="ASL_Analysis_Pipeline" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;utils.validation&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python tests.pytest for utils.validation" />
+        <item itemvalue="Python.sandbox" />
+        <item itemvalue="Python.preprocess" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand>
+              <path>
+                <item name="services root" type="e789fda9:ObjectUtils$Sentinel" />
+                <item name="Python" type="7427dc5b:ServiceModel$ServiceGroupNode" />
+              </path>
+              <path>
+                <item name="services root" type="e789fda9:ObjectUtils$Sentinel" />
+                <item name="Python" type="7427dc5b:ServiceModel$ServiceGroupNode" />
+                <item name="Failed" type="7427dc5b:ServiceModel$ServiceGroupNode" />
+              </path>
+              <path>
+                <item name="services root" type="e789fda9:ObjectUtils$Sentinel" />
+                <item name="Python" type="7427dc5b:ServiceModel$ServiceGroupNode" />
+                <item name="Finished" type="7427dc5b:ServiceModel$ServiceGroupNode" />
+              </path>
+            </expand>
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="" />
+      <created>1616862658163</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1616862658163</updated>
+    </task>
+    <task id="LOCAL-00001" summary="added more processing steps">
+      <created>1621881552444</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1621881552444</updated>
+    </task>
+    <task id="LOCAL-00002" summary="spm scripts">
+      <created>1621881968677</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1621881968677</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="added more processing steps" />
+    <MESSAGE value="spm scripts" />
+    <option name="LAST_COMMIT_MESSAGE" value="spm scripts" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="192" y="107" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1617121750254">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="96" y="62" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1280.813@0.0.1280.813" timestamp="1616945391072" />
+    <state x="192" y="107" key="#com.intellij.execution.impl.EditConfigurationsDialog/2560.0.2560.1400/0.0.2560.1400/-1440.0.1440.2520@0.0.2560.1400" timestamp="1617121750254" />
+    <state x="371" y="154" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1622052212886">
+      <screen x="0" y="0" width="1280" height="813" />
+    </state>
+    <state x="371" y="154" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1280.813@0.0.1280.813" timestamp="1622052212886" />
+    <state x="252" y="0" key="CommitChangelistDialog2" timestamp="1621881967658">
+      <screen x="0" y="0" width="1280" height="813" />
+    </state>
+    <state x="252" y="0" key="CommitChangelistDialog2/0.0.1280.813@0.0.1280.813" timestamp="1621881967658" />
+    <state x="842" y="257" key="FileChooserDialogImpl" timestamp="1625159511603">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="421" y="149" key="FileChooserDialogImpl/0.0.1280.813@0.0.1280.813" timestamp="1622054089318" />
+    <state x="842" y="257" key="FileChooserDialogImpl/2560.0.2560.1400/0.0.2560.1400/-1440.0.1440.2520@0.0.2560.1400" timestamp="1625159511603" />
+    <state width="2537" height="491" key="GridCell.Tab.0.bottom" timestamp="1625161366668">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="1259" height="207" key="GridCell.Tab.0.bottom/0.0.1280.813@0.0.1280.813" timestamp="1622161898375" />
+    <state width="2537" height="491" key="GridCell.Tab.0.bottom/2560.0.2560.1400/0.0.2560.1400/-1440.0.1440.2520@0.0.2560.1400" timestamp="1625161366668" />
+    <state width="2537" height="491" key="GridCell.Tab.0.center" timestamp="1625161366667">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="1259" height="207" key="GridCell.Tab.0.center/0.0.1280.813@0.0.1280.813" timestamp="1622161898375" />
+    <state width="2537" height="491" key="GridCell.Tab.0.center/2560.0.2560.1400/0.0.2560.1400/-1440.0.1440.2520@0.0.2560.1400" timestamp="1625161366667" />
+    <state width="2537" height="491" key="GridCell.Tab.0.left" timestamp="1625161366667">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="1259" height="207" key="GridCell.Tab.0.left/0.0.1280.813@0.0.1280.813" timestamp="1622161898375" />
+    <state width="2537" height="491" key="GridCell.Tab.0.left/2560.0.2560.1400/0.0.2560.1400/-1440.0.1440.2520@0.0.2560.1400" timestamp="1625161366667" />
+    <state width="2537" height="491" key="GridCell.Tab.0.right" timestamp="1625161366668">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="1259" height="207" key="GridCell.Tab.0.right/0.0.1280.813@0.0.1280.813" timestamp="1622161898375" />
+    <state width="2537" height="491" key="GridCell.Tab.0.right/2560.0.2560.1400/0.0.2560.1400/-1440.0.1440.2520@0.0.2560.1400" timestamp="1625161366668" />
+    <state width="2537" height="491" key="GridCell.Tab.1.bottom" timestamp="1625161366668">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2537" height="491" key="GridCell.Tab.1.bottom/2560.0.2560.1400/0.0.2560.1400/-1440.0.1440.2520@0.0.2560.1400" timestamp="1625161366668" />
+    <state width="2537" height="491" key="GridCell.Tab.1.center" timestamp="1625161366668">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2537" height="491" key="GridCell.Tab.1.center/2560.0.2560.1400/0.0.2560.1400/-1440.0.1440.2520@0.0.2560.1400" timestamp="1625161366668" />
+    <state width="2537" height="491" key="GridCell.Tab.1.left" timestamp="1625161366668">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2537" height="491" key="GridCell.Tab.1.left/2560.0.2560.1400/0.0.2560.1400/-1440.0.1440.2520@0.0.2560.1400" timestamp="1625161366668" />
+    <state width="2537" height="491" key="GridCell.Tab.1.right" timestamp="1625161366668">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2537" height="491" key="GridCell.Tab.1.right/2560.0.2560.1400/0.0.2560.1400/-1440.0.1440.2520@0.0.2560.1400" timestamp="1625161366668" />
+    <state x="221" y="142" key="IDE.errors.dialog" timestamp="1622048343593">
+      <screen x="0" y="0" width="1280" height="813" />
+    </state>
+    <state x="221" y="142" key="IDE.errors.dialog/0.0.1280.813@0.0.1280.813" timestamp="1622048343593" />
+    <state x="134" y="57" key="SettingsEditor" timestamp="1621470908259">
+      <screen x="0" y="0" width="1280" height="813" />
+    </state>
+    <state x="134" y="57" key="SettingsEditor/0.0.1280.813@0.0.1280.813" timestamp="1621470908259" />
+    <state x="284" y="86" key="SettingsEditor/2560.0.2560.1400/0.0.2560.1400/-1440.0.1440.2520@0.0.2560.1400" timestamp="1621433574372" />
+    <state width="498" height="446" key="SwitcherDM" timestamp="1621278689113">
+      <screen x="0" y="0" width="1280" height="813" />
+    </state>
+    <state width="498" height="446" key="SwitcherDM/0.0.1280.813@0.0.1280.813" timestamp="1621278689113" />
+    <state x="233" y="140" key="Vcs.Push.Dialog.v2" timestamp="1621881980341">
+      <screen x="0" y="0" width="1280" height="813" />
+    </state>
+    <state x="233" y="140" key="Vcs.Push.Dialog.v2/0.0.1280.813@0.0.1280.813" timestamp="1621881980341" />
+    <state x="674" y="398" key="com.intellij.ide.util.TipDialog" timestamp="1625161610795">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="337" y="231" key="com.intellij.ide.util.TipDialog/0.0.1280.813@0.0.1280.813" timestamp="1621978500954" />
+    <state x="674" y="398" key="com.intellij.ide.util.TipDialog/2560.0.2560.1400/0.0.2560.1400/-1440.0.1440.2520@0.0.2560.1400" timestamp="1625161610795" />
+    <state x="450" y="324" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1621881622797">
+      <screen x="0" y="0" width="1280" height="813" />
+    </state>
+    <state x="450" y="324" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1280.813@0.0.1280.813" timestamp="1621881622797" />
+    <state x="633" y="0" width="653" height="820" key="dock-window-1" timestamp="1621979931721">
+      <screen x="0" y="0" width="1280" height="813" />
+    </state>
+    <state x="633" y="0" width="653" height="820" key="dock-window-1/0.0.1280.813@0.0.1280.813" timestamp="1621979931721" />
+    <state x="303" y="134" width="672" height="678" key="search.everywhere.popup" timestamp="1622043304701">
+      <screen x="0" y="0" width="1280" height="813" />
+    </state>
+    <state x="303" y="134" width="672" height="678" key="search.everywhere.popup/0.0.1280.813@0.0.1280.813" timestamp="1622043304701" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/utils/image_builder.py</url>
+          <line>6</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
