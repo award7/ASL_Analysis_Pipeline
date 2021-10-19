@@ -1,11 +1,13 @@
+# from asl_utils.asl_utils import count_t1_images
+from datetime import datetime
+
 from airflow import DAG
-from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator, BranchPythonOperator
+from docker.types import Mount
+from airflow.operators.dummy import DummyOperator
 from custom.docker_xcom_operator import DockerXComOperator
 from custom.matlab_operator import MatlabOperator
-from utils.utils import count_t1_images
-from datetime import datetime
-from docker.types import Mount
 
 # todo: include default args
 default_args = {}
@@ -18,6 +20,7 @@ with DAG('asl_t1_dag', schedule_interval=None, start_date=datetime(2021, 8, 1), 
     # t1_proc_folder = os.path.join(tmp_root_folder, 't1/proc')
     asl_processing_m_files_directory = ''
 
+
     t1_image_count = BranchPythonOperator(
         task_id='count-t1-images',
         python_callable=count_t1_images,
@@ -25,9 +28,8 @@ with DAG('asl_t1_dag', schedule_interval=None, start_date=datetime(2021, 8, 1), 
     )
 
     # todo: build a reslice command in one of the MRI programs...
-    reslice_t1 = BashOperator(
+    reslice_t1 = DummyOperator(
         task_id='reslice-t1',
-        bash_command="echo 'reslice'"
     )
     t1_image_count >> reslice_t1
 

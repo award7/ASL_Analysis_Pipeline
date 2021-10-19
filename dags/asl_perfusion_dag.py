@@ -6,7 +6,7 @@ from custom.matlab_operator import MatlabOperator
 # from airflow.providers.microsoft.mssql.operators.mssql import MsSqlOperator
 # # from airflow.providers.microsoft.mssql.hooks.mssql import MsSqlHook
 from custom.docker_xcom_operator import DockerXComOperator
-# from airflow.utils.trigger_rule import TriggerRule
+# from airflow.asl_utils.trigger_rule import TriggerRule
 from datetime import datetime
 import os
 from docker.types import Mount

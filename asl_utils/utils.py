@@ -93,3 +93,8 @@ def create_asl_downstream_dag(ti):
     sessions = ti.xcom_pull(task_ids=['get-asl-sessions'], key='session')
     for session in sessions:
         yield {'session': session}
+
+
+def get_docker_url() -> str:
+    return "unix://var/run/docker.sock"
+
