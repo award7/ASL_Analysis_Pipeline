@@ -1,13 +1,13 @@
-# from asl_utils.asl_utils import count_t1_images
-from datetime import datetime
-
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 from docker.types import Mount
 from airflow.operators.dummy import DummyOperator
-from custom.docker_xcom_operator import DockerXComOperator
-from custom.matlab_operator import MatlabOperator
+from operators.matlab_operator import MatlabOperator
+from operators.docker_xcom_operator import DockerXComOperator
+
+# from asl_utils.asl_utils import count_t1_images
+from datetime import datetime
 
 # todo: include default args
 default_args = {}
