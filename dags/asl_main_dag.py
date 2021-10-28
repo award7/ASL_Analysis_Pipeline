@@ -6,6 +6,7 @@ from airflow.utils.task_group import TaskGroup
 from operators.matlab_operator import MatlabOperator
 from dicomsort.dicomsorter import DicomSorter
 from airflow.models import Variable
+from airflow.utils.trigger_rule import TriggerRule
 
 from docker.types import Mount
 from pydicom import read_file as dcm_read_file
@@ -74,9 +75,9 @@ def _get_asl_sessions(*, path: str, **kwargs) -> list:
             asl_paths.append(root)
 
     # set to airflow variable for dynamic task generation
-    Variable.set("asl_paths", asl_paths)
+    Variable.set("asl_sessions", len(asl_paths))
 
-    # also return for xcom
+    # return paths for xcom
     return asl_paths
 
 
@@ -111,8 +112,9 @@ def _count_asl_images(*, path: str, **kwargs) -> str:
     file_count = len(files_in_folder)
 
     if file_count < images_in_acquisition:
-        return ''
+        return 'errors.missing-files'
     else:
+        # todo: get task id
         return ''
 
 
@@ -121,10 +123,6 @@ def _get_subject_id(*, path: str, **kwargs) -> str:
     dcm = dcm_read_file(files[0])
     subject_id = getattr(dcm, 'PatientName')
     return subject_id
-
-
-def _dicom_sort(*, source: str, target: str, **kwargs):
-    return 'dicom sorting...'
 
 
 # todo: set default args dict
@@ -255,7 +253,6 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
         smooth_gm = MatlabOperator(
             task_id='smooth',
             matlab_function='sl_smooth',
-            m_dir=["{{ var.value.matlab_path_asl }}"],
             op_args=[
                 "{{ ti.xcom_pull(task_ids='segment-t1-image') }}"
             ],
@@ -274,100 +271,129 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
 
     with TaskGroup(group_id='asl') as asl_tg:
         # dynamically create tasks based on number of asl sessions
-        asl_sessions = Variable.get("asl_paths")
-        for idx, session in enumerate(asl_sessions):
-            basename = os.path.basename(session)
+        asl_sessions = int(Variable.get("asl_sessions"))
+        mask_count = len(Variable.get("asl_masks", deserialize_json=True))
+        for idx in range(0, asl_sessions):
+            # basename = os.path.basename(session)
+            with TaskGroup(group_id=f'asl-session-{idx}') as asl_session_tg:
+                count_asl_images = BranchPythonOperator(
+                    task_id=f'count-asl-images-{idx}',
+                    python_callable=_count_asl_images,
+                    op_kwargs={
+                        'path': ''
+                    }
+                )
+                init_tg >> count_asl_images
 
-            count_asl_images = BranchPythonOperator(
-                task_id=f'count-asl-images-{basename}',
-                python_callable=_count_asl_images,
-                op_kwargs={
-                    'path': session
-                }
-            )
-            init_tg >> count_asl_images
+                # todo: change to docker operator
+                afni_to3d = DummyOperator(
+                    task_id=f'afni-to3d-{idx}'
+                )
+                count_asl_images >> afni_to3d
 
-            # todo: change to docker operator
-            afni_to3d = DummyOperator(
-                task_id=f'afni-to3d-{basename}'
-            )
-            count_asl_images >> afni_to3d
+                # todo: change to bash operator
+                pcasl = DummyOperator(
+                    task_id=f'3df-pcasl-{idx}'
+                )
+                afni_to3d >> pcasl
 
-            # todo: change to bash operator
-            pcasl = DummyOperator(
-                task_id=f'3df-pcasl-{basename}'
-            )
-            afni_to3d >> pcasl
+                # todo: change to docker operator
+                # todo: make fmap and pdmap parallel
+                afni_3dcalc_fmap = DummyOperator(
+                    task_id=f'afni-3dcalc-fmap-{idx}'
+                )
 
-            # todo: change to docker operator
-            # todo: make fmap and pdmap parallel
-            afni_3dcalc_fmap = DummyOperator(
-                task_id=f'afni-3dcalc-fmap-{basename}'
-            )
+                # todo: change to docker operator
+                afni_3dcalc_pdmap = DummyOperator(
+                    task_id=f'afni-3dcalc-pdmap-{idx}'
+                )
+                pcasl >> [afni_3dcalc_fmap, afni_3dcalc_pdmap]
 
-            # todo: change to docker operator
-            afni_3dcalc_pdmap = DummyOperator(
-                task_id=f'afni-3dcalc-pdmap-{session}'
-            )
-            pcasl >> [afni_3dcalc_fmap, afni_3dcalc_pdmap]
+                # todo: change to matlab operator
+                coregister = DummyOperator(
+                    task_id=f'coregister-{idx}'
+                )
+                [smooth_gm, afni_3dcalc_fmap, afni_3dcalc_pdmap] >> coregister
 
-            # todo: change to matlab operator
-            coregister = DummyOperator(
-                task_id='coregister'
-            )
-            [smooth_gm, afni_3dcalc_fmap, afni_3dcalc_pdmap] >> coregister
+                # todo: change to matlab operator
+                normalize = DummyOperator(
+                    task_id=f'normalize-{idx}'
+                )
+                coregister >> normalize
 
-            # todo: change to matlab operator
-            normalize = DummyOperator(
-                task_id='normalize'
-            )
-            coregister >> normalize
+                # todo: change to matlab operator
+                smooth_coregistered_image = DummyOperator(
+                    task_id=f'smooth-coregistered-image-{idx}'
+                )
+                normalize >> smooth_coregistered_image
 
-            # todo: change to matlab operator
-            smooth_coregistered_image = DummyOperator(
-                task_id='smooth-coregistered-image'
-            )
-            normalize >> smooth_coregistered_image
+                # todo: change to matlab operator
+                apply_icv_mask = DummyOperator(
+                    task_id=f'apply-icv-mask-{idx}'
+                )
+                smooth_coregistered_image >> apply_icv_mask
 
-            # todo: change to matlab operator
-            apply_icv_mask = DummyOperator(
-                task_id='apply-icv-mask'
-            )
-            smooth_coregistered_image >> apply_icv_mask
+                # todo: change to matlab operator
+                create_perfusion_mask = DummyOperator(
+                    task_id=f'create-perfusion-mask-{idx}'
+                )
+                apply_icv_mask >> create_perfusion_mask
 
-            # todo: change to matlab operator
-            create_perfusion_mask = DummyOperator(
-                task_id='create-perfusion-mask'
-            )
-            apply_icv_mask >> create_perfusion_mask
+                # todo: change to matlab operator
+                get_global_perfusion = DummyOperator(
+                    task_id=f'get-global-perfusion-{idx}'
+                )
+                create_perfusion_mask >> get_global_perfusion
 
-            # todo: change to matlab operator
-            get_global_perfusion = DummyOperator(
-                task_id='get-global-perfusion'
-            )
-            create_perfusion_mask >> get_global_perfusion
+                with TaskGroup(group_id=f'roi-{idx}') as roi_tg:
+                    for roi in range(0, 100):
+                        # could create a task for each mask... but that would be >100 per asl session
+                        # todo: change to matlab operator
+                        inverse_warp_mask = DummyOperator(
+                            task_id=f'inverse-warp-mask-{idx}-{roi}'
+                        )
+                        create_perfusion_mask >> inverse_warp_mask
 
-            # could create a task for each mask... but that would be >100 per asl session
-            # todo: change to matlab operator
-            inverse_warp_mask = DummyOperator(
-                task_id='inverse-warp-mask'
-            )
-            create_perfusion_mask >> inverse_warp_mask
+                        # todo: change to matlab operator
+                        restrict_gm_to_mask = DummyOperator(
+                            task_id=f'restrict-gm-to-mask-{idx}-{roi}'
+                        )
+                        inverse_warp_mask >> restrict_gm_to_mask
 
-            # todo: change to matlab operator
-            restrict_gm_to_mask = DummyOperator(
-                task_id='restrict-gm-to-mask'
-            )
-            inverse_warp_mask >> restrict_gm_to_mask
+                        # todo: change to docker operator
+                        # todo: redirect stdout to .csv
+                        get_roi_perfusion = DummyOperator(
+                            task_id=f'get-roi-perfusion-{idx}-{roi}'
+                        )
+                        restrict_gm_to_mask >> get_roi_perfusion
 
-            # todo: change to bash operator
-            get_roi_perfusion = DummyOperator(
-                task_id='get-roi-perfusion'
+        with TaskGroup(group_id='aggregate-data') as aggregate_data_tg:
+            # todo: change to python operator todo: task should walk through each asl session (one task per session??)
+            #  aggregating all perfusion data (.csv) and form one .csv file
+            aggregate_perfusion_data = DummyOperator(
+                task_id='aggregate-perfusion-data',
+                trigger_rule=TriggerRule.ALL_DONE
             )
-            restrict_gm_to_mask >> get_roi_perfusion
+            [get_global_perfusion, get_roi_perfusion] >> aggregate_perfusion_data
 
-        with TaskGroup(group_id='misc') as misc_tg:
-            missing_files = DummyOperator(
-                task_id='missing-files'
+            # todo: make as csv2db operator
+            # todo: upload .csv file to staging table in database
+            asl_to_db = DummyOperator(
+                task_id='asl-to-db'
             )
-            [count_t1_images, count_t1_images] >> missing_files
+            aggregate_perfusion_data >> asl_to_db
+
+    with TaskGroup(group_id='errors') as misc_tg:
+        # todo: change to python operator to log
+        missing_files = DummyOperator(
+            task_id='missing-files'
+        )
+        [count_asl_images] >> missing_files
+
+    with TaskGroup(group_id='cleanup') as cleanup_tg:
+        # todo: change to python operator
+        remove_staged_files = DummyOperator(
+            task_id='remove-staged-files',
+            trigger_rule=TriggerRule.ALL_DONE
+        )
+        asl_tg >> remove_staged_files

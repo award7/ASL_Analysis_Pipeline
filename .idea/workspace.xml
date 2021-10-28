@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="moving to singular DAG and dynamic task creation">
+    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="laid out perfusion processing skeleton">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dags/asl_main_dag.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/asl_main_dag.py" afterDir="false" />
     </list>
@@ -217,7 +217,9 @@
       <workItem from="1635199348721" duration="1268000" />
       <workItem from="1635347054135" duration="1114000" />
       <workItem from="1635352351741" duration="7000" />
-      <workItem from="1635358170260" duration="9582000" />
+      <workItem from="1635358170260" duration="9666000" />
+      <workItem from="1635368226171" duration="4087000" />
+      <workItem from="1635436739507" duration="615000" />
     </task>
     <task id="LOCAL-00001" summary="added more processing steps">
       <created>1621881552444</created>
@@ -233,7 +235,14 @@
       <option name="project" value="LOCAL" />
       <updated>1621881968677</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="laid out perfusion processing skeleton">
+      <created>1635367813185</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1635367813185</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -255,7 +264,8 @@
     <MESSAGE value="added more processing steps" />
     <MESSAGE value="spm scripts" />
     <MESSAGE value="prepping for airflow" />
-    <option name="LAST_COMMIT_MESSAGE" value="prepping for airflow" />
+    <MESSAGE value="laid out perfusion processing skeleton" />
+    <option name="LAST_COMMIT_MESSAGE" value="laid out perfusion processing skeleton" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -269,6 +279,6 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/asl_analysis_pipeline$asl_main_dag.coverage" NAME="asl_main_dag Coverage Results" MODIFIED="1635359694572" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dags" />
+    <SUITE FILE_PATH="coverage/asl_analysis_pipeline$asl_main_dag.coverage" NAME="asl_main_dag Coverage Results" MODIFIED="1635372114938" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dags" />
   </component>
 </project>
