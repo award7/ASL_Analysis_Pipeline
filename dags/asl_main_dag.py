@@ -27,15 +27,16 @@ def _make_proc_staging_path(*, path: str, **kwargs) -> None:
 def _t1_scan_names() -> list:
     # include all variations of the T1 scan name between studies
     return [
-        'axial',
-        'madni'
+        'Ax_T1_Bravo_3mm',
+        'mADNI3_T1'
     ]
 
 
 def _asl_scan_names() -> list:
     # include all variations of the asl scan name between studies
     return [
-        'contrast'
+        'UW_eASL',
+        '3D_ASL'
     ]
 
 
@@ -45,7 +46,7 @@ def _get_t1_path(*, path: str, **kwargs) -> str:
     # get lowest directories to search for t1 directories
     t1_paths = []
     for root, dirs, files in os.walk(path):
-        if not dirs and root in potential_t1_names:
+        if not dirs and any(name in root for name in potential_t1_names):
             t1_paths.append(root)
 
     # if there's more than one t1 directory found, get each scan's acquisition time and return the scan with the most
@@ -61,7 +62,7 @@ def _get_t1_path(*, path: str, **kwargs) -> str:
     return t1_paths[0]
 
 
-def _get_asl_sessions(*, path: str, **kwargs) -> list:
+def _get_asl_sessions(*, path: str, **kwargs) -> None:
     """
     find asl folders
     :param is the target path for the dicom sorting
@@ -71,14 +72,16 @@ def _get_asl_sessions(*, path: str, **kwargs) -> list:
     # get lowest directories to search for asl directories
     asl_paths = []
     for root, dirs, files in os.walk(path):
-        if not dirs and root in potential_asl_names:
+        if not dirs and any(name in root for name in potential_asl_names):
             asl_paths.append(root)
 
     # set to airflow variable for dynamic task generation
     Variable.set("asl_sessions", len(asl_paths))
 
     # return paths for xcom
-    return asl_paths
+    ti = kwargs['ti']
+    for idx, path in enumerate(asl_paths):
+        ti.xcom_push(key=f"path{idx}", value=path)
 
 
 def _get_study_date(*, path: str, **kwargs) -> str:
@@ -105,7 +108,7 @@ def _count_t1_images(*, path: str, **kwargs) -> str:
         return 'build-dcm2niix-image'
 
 
-def _count_asl_images(*, path: str, **kwargs) -> str:
+def _count_asl_images(*, path: str, success_task_id: str, **kwargs) -> str:
     files_in_folder = os.listdir(path)
     dcm = dcm_read_file(files_in_folder[0])
     images_in_acquisition = getattr(dcm, 'ImagesInAcquisition')
@@ -114,8 +117,7 @@ def _count_asl_images(*, path: str, **kwargs) -> str:
     if file_count < images_in_acquisition:
         return 'errors.missing-files'
     else:
-        # todo: get task id
-        return ''
+        return success_task_id
 
 
 def _get_subject_id(*, path: str, **kwargs) -> str:
@@ -147,14 +149,17 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
             }
         )
 
-        dicom_sort = PythonOperator(
-            task_id='dicom-sort',
-            python_callable=DicomSorter,
-            op_kwargs={
-                'source': "{{ var.value.disk_drive }}",
-                'target': "{{ var.value.asl_raw_path }}"
-            }
+        dicom_sort = DummyOperator(
+            task_id='dicom-sort'
         )
+        # dicom_sort = PythonOperator(
+        #     task_id='dicom-sort',
+        #     python_callable=DicomSorter,
+        #     op_kwargs={
+        #         'source': "{{ var.value.disk_drive }}",
+        #         'target': "{{ var.value.asl_raw_path }}"
+        #     }
+        # )
         [make_raw_staging_path, make_proc_staging_path] >> dicom_sort
 
         get_t1_path = PythonOperator(
@@ -234,36 +239,42 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
         )
         [build_dcm2niix_image, reslice_t1] >> dcm2niix
 
-        segment_t1 = MatlabOperator(
-            task_id='segment-t1-image',
-            matlab_function='segment_t1',
-            matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
-            op_args=[
-                "{{ ti.xcom_pull(task_ids='dcm2niix') }}"
-            ],
-            op_kwargs={
-                'outdir': "{{ var.value.asl_proc_path }}",
-                'nargout': 3
-            }
+        segment_t1 = DummyOperator(
+            task_id='segment-t1-image'
         )
+        # segment_t1 = MatlabOperator(
+        #     task_id='segment-t1-image',
+        #     matlab_function='segment_t1',
+        #     matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+        #     op_args=[
+        #         "{{ ti.xcom_pull(task_ids='dcm2niix') }}"
+        #     ],
+        #     op_kwargs={
+        #         'outdir': "{{ var.value.asl_proc_path }}",
+        #         'nargout': 3
+        #     }
+        # )
         dcm2niix >> segment_t1
 
         # following segmentation, by default SPM creates a few files prefaced with `c` for each tissue segmentation, a `y`
         # file for the deformation field, and a `*seg8*.mat` file for tissue volume matrix
         # therefore, it's best to keep to the default naming convention by spm to ensure the pipeline stays intact
 
-        smooth_gm = MatlabOperator(
-            task_id='smooth',
-            matlab_function='sl_smooth',
-            op_args=[
-                "{{ ti.xcom_pull(task_ids='segment-t1-image') }}"
-            ],
-            op_kwargs={
-                'fwhm': '[8 8 8]',
-                'outdir': "{{ var.value.asl_proc_path }}",
-                'nargout': 1
-            }
+        smooth_gm = DummyOperator(
+            task_id='smooth'
         )
+        # smooth_gm = MatlabOperator(
+        #     task_id='smooth',
+        #     matlab_function='sl_smooth',
+        #     op_args=[
+        #         "{{ ti.xcom_pull(task_ids='segment-t1-image') }}"
+        #     ],
+        #     op_kwargs={
+        #         'fwhm': '[8 8 8]',
+        #         'outdir': "{{ var.value.asl_proc_path }}",
+        #         'nargout': 1
+        #     }
+        # )
         segment_t1 >> smooth_gm
 
         get_brain_volumes = DummyOperator(
@@ -274,7 +285,7 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
     with TaskGroup(group_id='asl') as asl_tg:
         # dynamically create tasks based on number of asl sessions
         asl_sessions = int(Variable.get("asl_sessions"))
-        mask_count = len(Variable.get("asl_masks", deserialize_json=True))
+        mask_count = len(Variable.get("asl_roi_masks"))
 
         build_afni_image = DockerBuildLocalImageOperator(
             task_id='build-afni-image',
@@ -297,7 +308,8 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
                     task_id=f'count-asl-images-{idx}',
                     python_callable=_count_asl_images,
                     op_kwargs={
-                        'path': ''
+                        'path': f"{{ ti.xcom_pull(task_ids='get-asl-sessions', key='path{idx}') }}",
+                        'success_task_id': f'afni-to3d-{idx}'
                     }
                 )
                 init_tg >> count_asl_images
