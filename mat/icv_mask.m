@@ -1,49 +1,41 @@
-function new_file = invwarp(mask, deform_field, fov, opts)
-    % INVWARP Apply inverse warp
-    % 
+function new_file = icv_mask(deform_field, fov, opts)
+    % APPLYICVMASK Apply intracranial vault mask to image
+    %
     % Required arguments:
     %
-    % mask = Mask to apply
-    %        (char | str)
+    % deform_field = deformation field file (e.g. T1DeformationField)
+    %                    (char | str)
     %
-    % deform_field = Deformation field (Default = T1DeformationField)
-    %               (char | str)
-    %
-    % fov = Field of view (Default = SmoothedGMImage)
-    %       (char | str)
+    % fov = Field of view (e.g. SmoothedGmImage)
     %
     % Optional arguments:
     %
-    % 'fwhm'
-    %
-    % 'prefix' = File prefix (Default = 'w')
+    % 'fwhm' = Full-width half max (default = [0 0 0])
+    %          (single | double)
+    % 
+    % 'prefix' = File prefix (default = 'wt1')
     %            (char | str)
     %
-    % 'outdir' = Save path (Default = AALInvwarpDir)
+    % 'outdir' = Save path (default = same as /path/to/fov)
     %            (char | str)
-    %
-    % 'subj'
-    %
-    % 'time'
-    
+
     arguments
-        mask {mustBeFile};
         deform_field {mustBeFile};
         fov {mustBeFile};
         opts.fwhm (1,3) double {mustBeVector} = [0 0 0];
-        opts.prefix {mustBeTextScalar} = 'w';
+        opts.prefix {mustBeTextScalar} = 'wt1';
         opts.outdir {mustBeFolder} = '';
-        opts.subject {mustBeTextScalar} = datestr(date, 'YYYYmmDD');
-        opts.time {mustBeTextScalar} = datestr(now, 'HHMMSS');
     end
-
+    
     if isempty(opts.outdir)
-        [opts.outdir, ~, ~] = fileparts(mask);
+        [opts.outdir, ~, ~] = fileparts(deform_field);
     else
         mustBeFolder(opts.outdir);
     end
     
-    [~, mask_name, ~] = fileparts(mask);
+    % TODO: set path for vm
+    % path within docker container
+    mask = '/opt/spm12-r7771/spm12_mcr/spm12/tpm/mask_ICV.nii';
 
     % spm batch
     spm('defaults', 'FMRI');
@@ -61,9 +53,9 @@ function new_file = invwarp(mask, deform_field, fov, opts)
 
     spm_jobman('run', matlabbatch)
 
-    % spm doesn't allow dependency IO for this method
-    % need to do it ourself
-    old_file = fullfile(opts.outdir, strcat(opts.prefix, mask_name, '.nii'));
-    new_file = fullfile(opts.outdir, strcat(opts.prefix, '_', opts.subject, '_', mask_name, '.nii'));
+    % spm doesn't allow dependency-file I/O for deformation utility,
+    % so need to move and rename ourself
+    old_file = fullfile(outdir, 'wmask_ICV.nii');
+    new_file = fullfile(outdir, strcat(opts.prefix, '_mask_icv.nii'));
     movefile(old_file, new_file);
 end
