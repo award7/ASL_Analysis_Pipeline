@@ -1,14 +1,14 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator, BranchPythonOperator
-from airflow.providers.docker.operators.docker import DockerOperator
+from operators.docker_templated_mounts_operator import DockerTemplatedMountsOperator
+from operators.docker_remove_image import DockerRemoveImage
+from operators.docker_build_local_image_operator import DockerBuildLocalImageOperator
 from airflow.operators.dummy import DummyOperator
 from airflow.utils.task_group import TaskGroup
 from operators.matlab_operator import MatlabOperator
 from dicomsort.dicomsorter import DicomSorter
 from airflow.models import Variable
 from airflow.utils.trigger_rule import TriggerRule
-
-from docker.types import Mount
 from pydicom import read_file as dcm_read_file
 from datetime import datetime
 import os
@@ -102,7 +102,7 @@ def _count_t1_images(*, path: str, **kwargs) -> str:
     if file_count < images_in_acquisition:
         return 'reslice-t1'
     else:
-        return 'dcm2niix'
+        return 'build-dcm2niix-image'
 
 
 def _count_asl_images(*, path: str, **kwargs) -> str:
@@ -128,7 +128,6 @@ def _get_subject_id(*, path: str, **kwargs) -> str:
 # todo: set default args dict
 # todo: rename DAG after testing
 with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1), catchup=False) as dag:
-    # DOCKER_URL = Variable.get("docker_url")
 
     with TaskGroup(group_id='init') as init_tg:
 
@@ -201,36 +200,39 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
         )
         count_t1_images >> reslice_t1
 
-        dcm2niix = DockerOperator(
+        build_dcm2niix_image = DockerBuildLocalImageOperator(
+            task_id='build-dcm2niix-image',
+            path="{{ var.value.dcm2niix_docker_image }}",
+            tag="asl/dcm2niix"
+        )
+
+        dcm2niix = DockerTemplatedMountsOperator(
             task_id='dcm2niix',
             image='asl/dcm2niix',
-            # command='dcm2niix -f {{ params.file_name }} -o {{ params.output_dir }} {{ params.input_dir }}',
-            command="""/bin/bash -c 'echo "{{ params.file_name }}">/in/xcom_file.txt; ls /data/in'""",
-            api_version='auto',
-            auto_remove=True,
-            # docker_url=DOCKER_URL,
-            do_xcom_push=True,
+            # this command calls a bash shell ->
+            # calls dcm2niix program (filename being protocol_name_timestamp) and outputs to the /tmp directory on the
+            #     container ->
+            # find the .nii file that was created and save the name to a variable ->
+            # move the created files from /tmp to the mounted directory /out ->
+            # clear the stdout ->
+            # echo the filename to stdout so it will be returned as the xcom value
+            command="""/bin/sh -c \'dcm2niix -f %p_%n_%t -o /tmp /in; clear; file=$(find ./tmp -name "*.nii" -type f); mv /tmp/* /out; clear; echo "${file##*/}"\'""",
             mounts=[
-                Mount(
-                    target='/in',
-                    # todo: extend docker operator for templating mount names
-                    source="{{ ti.xcom_pull(task_ids='init.get-t1-path') }}",
-                    type='bind'
-                ),
-                Mount(
-                    target='/out',
-                    # todo: extend docker operator for templating mount names
-                    source="{{ var.value.asl_proc_path }}",
-                    type='bind'
-                ),
+                {
+                    'target': '/in',
+                    'source': "{{ ti.xcom_pull(task_ids='init.get-t1-path') }}",
+                    'type': 'bind'
+                },
+                {
+                    'target': '/out',
+                    'source': "{{ var.value.asl_proc_path }}",
+                    'type': 'bind'
+                },
             ],
-            params={
-                'file_name': "t1_{{ ti.xcom_pull(task_ids='init.get-subject-id') }}",
-                'output_dir': "{{ var.value.asl_proc_path }}",
-                'input_dir': '/out'
-            }
+            auto_remove=True,
+            do_xcom_push=True
         )
-        [count_t1_images, reslice_t1] >> dcm2niix
+        [build_dcm2niix_image, reslice_t1] >> dcm2niix
 
         segment_t1 = MatlabOperator(
             task_id='segment-t1-image',
@@ -273,6 +275,21 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
         # dynamically create tasks based on number of asl sessions
         asl_sessions = int(Variable.get("asl_sessions"))
         mask_count = len(Variable.get("asl_masks", deserialize_json=True))
+
+        build_afni_image = DockerBuildLocalImageOperator(
+            task_id='build-afni-image',
+            path="{{ var.value.afni_docker_image }}",
+            tag='asl/afni'
+        )
+        init_tg >> build_afni_image
+
+        build_fsl_image = DockerBuildLocalImageOperator(
+            task_id='build-fsl-image',
+            path="{{ var.value.fsl_docker_image }}",
+            tag='asl/fsl'
+        )
+        init_tg >> build_fsl_image
+
         for idx in range(0, asl_sessions):
             # basename = os.path.basename(session)
             with TaskGroup(group_id=f'asl-session-{idx}') as asl_session_tg:
@@ -289,7 +306,7 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
                 afni_to3d = DummyOperator(
                     task_id=f'afni-to3d-{idx}'
                 )
-                count_asl_images >> afni_to3d
+                [build_afni_image, count_asl_images] >> afni_to3d
 
                 # todo: change to bash operator
                 pcasl = DummyOperator(
@@ -347,7 +364,6 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
 
                 with TaskGroup(group_id=f'roi-{idx}') as roi_tg:
                     for roi in range(0, 100):
-                        # could create a task for each mask... but that would be >100 per asl session
                         # todo: change to matlab operator
                         inverse_warp_mask = DummyOperator(
                             task_id=f'inverse-warp-mask-{idx}-{roi}'
@@ -361,11 +377,11 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
                         inverse_warp_mask >> restrict_gm_to_mask
 
                         # todo: change to docker operator
-                        # todo: redirect stdout to .csv
+                        # todo: redirect stdout to .csv??
                         get_roi_perfusion = DummyOperator(
                             task_id=f'get-roi-perfusion-{idx}-{roi}'
                         )
-                        restrict_gm_to_mask >> get_roi_perfusion
+                        [build_fsl_image, restrict_gm_to_mask] >> get_roi_perfusion
 
         with TaskGroup(group_id='aggregate-data') as aggregate_data_tg:
             # todo: change to python operator todo: task should walk through each asl session (one task per session??)
@@ -391,6 +407,27 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
         [count_asl_images] >> missing_files
 
     with TaskGroup(group_id='cleanup') as cleanup_tg:
+        remove_dcm2niix_image = DockerRemoveImage(
+            task_id='remove-dcm2niix-image',
+            image='asl/dcm2niix',
+            trigger_rule=TriggerRule.ALL_DONE
+        )
+        dcm2niix >> remove_dcm2niix_image
+
+        remove_afni_image = DockerRemoveImage(
+            task_id='remove-afni-image',
+            image='asl/afni',
+            trigger_rule=TriggerRule.ALL_DONE
+        )
+        [afni_3dcalc_fmap, afni_3dcalc_pdmap] >> remove_afni_image
+
+        remove_fsl_image = DockerRemoveImage(
+            task_id='remove-fsl-image',
+            image='asl/fsl',
+            trigger_rule=TriggerRule.ALL_DONE
+        )
+        get_roi_perfusion >> remove_fsl_image
+
         # todo: change to python operator
         remove_staged_files = DummyOperator(
             task_id='remove-staged-files',
