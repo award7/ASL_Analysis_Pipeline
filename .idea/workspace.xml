@@ -4,12 +4,202 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="added dynamic task generation for masking">
-      <change afterPath="$PROJECT_DIR$/dags/tmp.py" afterDir="false" />
+    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="laid out perfusion processing skeleton">
+      <change afterPath="$PROJECT_DIR$/mat/brain_volumes.m" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mat/brainmask.m" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mat/coregister_asl.m" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mat/icv_mask.m" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mat/normalize_t1.m" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mat/segment_t1.m" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mat/smooth_t1.m" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/asl_utils/mat_scripts.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/asl_utils/mat_scripts.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dags/asl_main_dag.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/asl_main_dag.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dags/asl_perfusion_dag.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dags/asl_t1_dag.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker/spm/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/docker/spm/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Amygdala_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Amygdala_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Amygdala_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Amygdala_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Angular_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Angular_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Angular_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Angular_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Calcarine_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Calcarine_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Calcarine_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Calcarine_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Caudate_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Caudate_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Caudate_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Caudate_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_10_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_10_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_10_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_10_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_3_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_3_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_3_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_3_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_4_5_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_4_5_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_4_5_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_4_5_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_6_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_6_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_6_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_6_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_7b_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_7b_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_7b_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_7b_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_8_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_8_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_8_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_8_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_9_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_9_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_9_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_9_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_Crus1_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_Crus1_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_Crus1_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_Crus1_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_Crus2_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_Crus2_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cerebelum_Crus2_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cerebelum_Crus2_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cingulum_Ant_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cingulum_Ant_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cingulum_Ant_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cingulum_Ant_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cingulum_Mid_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cingulum_Mid_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cingulum_Mid_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cingulum_Mid_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cingulum_Post_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cingulum_Post_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cingulum_Post_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cingulum_Post_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cuneus_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cuneus_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Cuneus_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Cuneus_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Inf_Oper_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Inf_Oper_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Inf_Oper_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Inf_Oper_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Inf_Orb_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Inf_Orb_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Inf_Orb_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Inf_Orb_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Inf_Tri_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Inf_Tri_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Inf_Tri_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Inf_Tri_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Med_Orb_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Med_Orb_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Med_Orb_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Med_Orb_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Mid_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Mid_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Mid_Orb_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Mid_Orb_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Mid_Orb_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Mid_Orb_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Mid_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Mid_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Sup_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Sup_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Sup_Medial_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Sup_Medial_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Sup_Medial_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Sup_Medial_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Sup_Orb_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Sup_Orb_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Sup_Orb_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Sup_Orb_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Frontal_Sup_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Frontal_Sup_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Fusiform_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Fusiform_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Fusiform_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Fusiform_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Heschl_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Heschl_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Heschl_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Heschl_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Hippocampus_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Hippocampus_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Hippocampus_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Hippocampus_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Insula_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Insula_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Insula_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Insula_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Lingual_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Lingual_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Lingual_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Lingual_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Occipital_Inf_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Occipital_Inf_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Occipital_Inf_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Occipital_Inf_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Occipital_Mid_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Occipital_Mid_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Occipital_Mid_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Occipital_Mid_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Occipital_Sup_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Occipital_Sup_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Occipital_Sup_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Occipital_Sup_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Olfactory_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Olfactory_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Olfactory_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Olfactory_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Pallidum_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Pallidum_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Pallidum_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Pallidum_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/ParaHippocampal_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/ParaHippocampal_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/ParaHippocampal_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/ParaHippocampal_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Paracentral_Lobule_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Paracentral_Lobule_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Paracentral_Lobule_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Paracentral_Lobule_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Parietal_Inf_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Parietal_Inf_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Parietal_Inf_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Parietal_Inf_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Parietal_Sup_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Parietal_Sup_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Parietal_Sup_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Parietal_Sup_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Postcentral_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Postcentral_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Postcentral_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Postcentral_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Precentral_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Precentral_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Precentral_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Precentral_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Precuneus_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Precuneus_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Precuneus_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Precuneus_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Putamen_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Putamen_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Putamen_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Putamen_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Rectus_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Rectus_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Rectus_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Rectus_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Rolandic_Oper_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Rolandic_Oper_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Rolandic_Oper_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Rolandic_Oper_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Supp_Motor_Area_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Supp_Motor_Area_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Supp_Motor_Area_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Supp_Motor_Area_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/SupraMarginal_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/SupraMarginal_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/SupraMarginal_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/SupraMarginal_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Temporal_Inf_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Temporal_Inf_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Temporal_Inf_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Temporal_Inf_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Temporal_Mid_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Temporal_Mid_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Temporal_Mid_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Temporal_Mid_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Temporal_Pole_Mid_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Temporal_Pole_Mid_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Temporal_Pole_Mid_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Temporal_Pole_Mid_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Temporal_Pole_Sup_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Temporal_Pole_Sup_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Temporal_Pole_Sup_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Temporal_Pole_Sup_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Temporal_Sup_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Temporal_Sup_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Temporal_Sup_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Temporal_Sup_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Thalamus_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Thalamus_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Thalamus_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Thalamus_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Vermis_10.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Vermis_10.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Vermis_1_2.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Vermis_1_2.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Vermis_3.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Vermis_3.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Vermis_4_5.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Vermis_4_5.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Vermis_6.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Vermis_6.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Vermis_7.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Vermis_7.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Vermis_8.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Vermis_8.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/aal/Vermis_9.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/Vermis_9.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/MNI_Cerebellum_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/MNI_Cerebellum_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/MNI_Cerebellum_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/MNI_Cerebellum_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/MNI_Frontal_Lobe_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/MNI_Frontal_Lobe_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/MNI_Frontal_Lobe_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/MNI_Frontal_Lobe_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/MNI_Occipital_Lobe_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/MNI_Occipital_Lobe_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/MNI_Occipital_Lobe_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/MNI_Occipital_Lobe_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/MNI_Parietal_Lobe_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/MNI_Parietal_Lobe_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/MNI_Parietal_Lobe_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/MNI_Parietal_Lobe_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/MNI_Temporal_Lobe_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/MNI_Temporal_Lobe_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/MNI_Temporal_Lobe_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/MNI_Temporal_Lobe_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/misc/MNI_Cerebellum_Prob.nii.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/misc/MNI_Cerebellum_Thr10.nii.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/misc/MNI_Frontal_Lobe_Prob.nii.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/misc/MNI_Frontal_Lobe_Thr10.nii.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/misc/MNI_Occipital_Lobe_Prob.nii.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/misc/MNI_Occipital_Lobe_Thr10.nii.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/misc/MNI_Parietal_Lobe_Prob.nii.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/misc/MNI_Parietal_Lobe_Thr10.nii.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/misc/MNI_Temporal_Lobe_Prob.nii.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/lobes/misc/MNI_Temporal_Lobe_Thr10.nii.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/ATTbasedFlowTerritories.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/ATTbasedFlowTerritories.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/aca_distal.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/aca_distal.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/aca_distal_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/aca_distal_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/aca_distal_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/aca_distal_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/aca_middle.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/aca_middle.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/aca_middle_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/aca_middle_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/aca_middle_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/aca_middle_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/aca_proximal.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/aca_proximal.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/aca_proximal_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/aca_proximal_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/aca_proximal_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/aca_proximal_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/aca_territory_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/aca_territory_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/aca_territory_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/aca_territory_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/anterior_mask.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/anterior_mask.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/mca_distal.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/mca_distal.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/mca_distal_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/mca_distal_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/mca_distal_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/mca_distal_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/mca_middle.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/mca_middle.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/mca_middle_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/mca_middle_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/mca_middle_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/mca_middle_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/mca_proximal.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/mca_proximal.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/mca_proximal_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/mca_proximal_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/mca_proximal_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/mca_proximal_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/mca_territory_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/mca_territory_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/mca_territory_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/mca_territory_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/mni_vascular_territories.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/mni_vascular_territories.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/pca_distal.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/pca_distal.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/pca_distal_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/pca_distal_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/pca_distal_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/pca_distal_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/pca_middle.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/pca_middle.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/pca_middle_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/pca_middle_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/pca_middle_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/pca_middle_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/pca_proximal.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/pca_proximal.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/pca_proximal_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/pca_proximal_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/pca_proximal_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/pca_proximal_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/pca_territory_L.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/pca_territory_L.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/pca_territory_R.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/pca_territory_R.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masks/vascular_territories/posterior_mask.nii" beforeDir="false" afterPath="$PROJECT_DIR$/masks/posterior_mask.nii" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mat/bmask.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mat/brainVol.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mat/calcGlobal.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/calculate_global_asl.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mat/coregister.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mat/invwarp.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/invwarp.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mat/invwarpXgm.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/invwarpXgm.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mat/maskICV.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mat/normalize.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mat/segment.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mat/smooth.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/preprocess.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/preprocess.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -247,6 +437,10 @@
       <workItem from="1635368226171" duration="4087000" />
       <workItem from="1635436739507" duration="4037000" />
       <workItem from="1635441693658" duration="13766000" />
+      <workItem from="1635523516264" duration="3809000" />
+      <workItem from="1635527575613" duration="616000" />
+      <workItem from="1635528227198" duration="14000" />
+      <workItem from="1635528292976" duration="693000" />
     </task>
     <task id="LOCAL-00001" summary="added more processing steps">
       <created>1621881552444</created>
@@ -314,7 +508,7 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/asl_analysis_pipeline$asl_main_dag.coverage" NAME="asl_main_dag Coverage Results" MODIFIED="1635458380289" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dags" />
+    <SUITE FILE_PATH="coverage/asl_analysis_pipeline$asl_main_dag.coverage" NAME="asl_main_dag Coverage Results" MODIFIED="1635528587449" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dags" />
     <SUITE FILE_PATH="coverage/asl_analysis_pipeline$tmp.coverage" NAME="tmp Coverage Results" MODIFIED="1635456238874" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dags" />
   </component>
 </project>
