@@ -204,7 +204,8 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         build_dcm2niix_image = DockerBuildLocalImageOperator(
             task_id='build-dcm2niix-image',
             path="{{ var.value.dcm2niix_docker_image }}",
-            tag="asl/dcm2niix"
+            tag="asl/dcm2niix",
+            trigger_rule=TriggerRule.NONE_FAILED
         )
 
         dcm2niix = DockerTemplatedMountsOperator(
