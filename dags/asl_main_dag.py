@@ -158,15 +158,6 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
             }
         )
 
-        get_t1_path = PythonOperator(
-            task_id='get-t1-path',
-            python_callable=_get_t1_path,
-            op_kwargs={
-                'path': "{{ var.value.asl_raw_path }}"
-            }
-        )
-        dicom_sort >> get_t1_path
-
         get_asl_sessions = ShortCircuitOperator(
             task_id='get-asl-sessions',
             python_callable=_get_asl_sessions,
@@ -175,6 +166,15 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
             }
         )
         dicom_sort >> get_asl_sessions
+
+        get_t1_path = PythonOperator(
+            task_id='get-t1-path',
+            python_callable=_get_t1_path,
+            op_kwargs={
+                'path': "{{ var.value.asl_raw_path }}"
+            }
+        )
+        dicom_sort >> get_t1_path
 
         get_subject_id = PythonOperator(
             task_id='get-subject-id',
