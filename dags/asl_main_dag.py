@@ -251,6 +251,36 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         # file for the deformation field, and a `*seg8*.mat` file for tissue volume matrix
         # therefore, it's best to keep to the default naming convention by spm to ensure the pipeline stays intact
 
+        get_gm_file = PythonOperator(
+            task_id='get-gm-file',
+            python_callable=_get_file,
+            op_kwargs={
+                'path': "{{ var.value.asl_proc_path }}",
+                'search': "c1*"
+            }
+        )
+        segment_t1 >> get_gm_file
+
+        get_seg8mat_file = PythonOperator(
+            task_id='get-seg8mat-file',
+            python_callable=_get_file,
+            op_kwargs={
+                'path': "{{ var.value.asl_proc_path }}",
+                'search': "*seg8.mat"
+            }
+        )
+        segment_t1 >> get_seg8mat_file
+
+        get_forward_deformation_file = PythonOperator(
+            task_id='get-forward_deformation-file',
+            python_callable=_get_file,
+            op_kwargs={
+                'path': "{{ var.value.asl_proc_path }}",
+                'search': "y*"
+            }
+        )
+        segment_t1 >> get_forward_deformation_file
+
         smooth_gm = DummyOperator(
             task_id='smooth'
         )
