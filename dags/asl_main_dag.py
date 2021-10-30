@@ -190,7 +190,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
             task_id='count-t1-images',
             python_callable=_count_t1_images,
             op_kwargs={
-                'path': "{{ ti.xcom_pull(task_ids='get-t1-path') }}"
+                'path': "{{ ti.xcom_pull(task_ids='init.get-t1-path') }}"
             }
         )
         init_tg >> count_t1_images
