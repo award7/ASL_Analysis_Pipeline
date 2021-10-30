@@ -62,7 +62,7 @@ def _get_t1_path(*, path: str, **kwargs) -> str:
     return t1_paths[0]
 
 
-def _get_asl_sessions(*, path: str, **kwargs) -> None:
+def _get_asl_sessions(*, path: str, **kwargs) -> bool:
     """
     find asl folders
     :param is the target path for the dicom sorting
@@ -75,13 +75,17 @@ def _get_asl_sessions(*, path: str, **kwargs) -> None:
         if not dirs and any(name in root for name in potential_asl_names):
             asl_paths.append(root)
 
-    # set to airflow variable for dynamic task generation
-    Variable.set("asl_sessions", len(asl_paths))
+    if asl_paths:
+        # set to airflow variable for dynamic task generation
+        Variable.set("asl_sessions", len(asl_paths))
 
-    # return paths for xcom
-    ti = kwargs['ti']
-    for idx, path in enumerate(asl_paths):
-        ti.xcom_push(key=f"path{idx}", value=path)
+        # return paths for xcom
+        ti = kwargs['ti']
+        for idx, path in enumerate(asl_paths):
+            ti.xcom_push(key=f"path{idx}", value=path)
+        return True
+    else:
+        return False
 
 
 def _get_study_date(*, path: str, **kwargs) -> str:
