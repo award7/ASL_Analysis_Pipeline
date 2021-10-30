@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="added smooth_gm">
+    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="fixed 'subj' variable naming error">
       <change afterPath="$PROJECT_DIR$/dags/tmp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mat/brain_volumes.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/brain_volumes.m" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,7 +52,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../plugins/operators/matlab_operator.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../plugins/operators/docker_build_local_image_operator.py" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -404,7 +403,21 @@
       <option name="project" value="LOCAL" />
       <updated>1635558790075</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="added get_brain_volumes">
+      <created>1635559865812</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1635559865812</updated>
+    </task>
+    <task id="LOCAL-00024" summary="fixed 'subj' variable naming error">
+      <created>1635559915893</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1635559915893</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -445,7 +458,9 @@
     <MESSAGE value="added segment_t1" />
     <MESSAGE value="added operators to fetch segmented files" />
     <MESSAGE value="added smooth_gm" />
-    <option name="LAST_COMMIT_MESSAGE" value="added smooth_gm" />
+    <MESSAGE value="added get_brain_volumes" />
+    <MESSAGE value="fixed 'subj' variable naming error" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixed 'subj' variable naming error" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
