@@ -121,9 +121,9 @@ def _count_asl_images(*, path: str, success_task_id: str, **kwargs) -> str:
 
 
 def _get_subject_id(*, path: str, **kwargs) -> str:
-    files = os.listdir(path)[0]
-    dcm = dcm_read_file(files[0])
-    subject_id = getattr(dcm, 'PatientName')
+    files = os.listdir(path)
+    dcm = dcm_read_file(os.path.join(path, files[0]))
+    subject_id = str(getattr(dcm, 'PatientName')).replace('-', '_')
     return subject_id
 
 
