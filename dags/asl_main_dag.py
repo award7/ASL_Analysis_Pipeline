@@ -1,5 +1,5 @@
 from airflow import DAG
-from airflow.operators.python import PythonOperator, BranchPythonOperator
+from airflow.operators.python import PythonOperator, BranchPythonOperator, ShortCircuitOperator
 from operators.docker_templated_mounts_operator import DockerTemplatedMountsOperator
 from operators.docker_remove_image import DockerRemoveImage
 from operators.docker_build_local_image_operator import DockerBuildLocalImageOperator
@@ -127,20 +127,15 @@ def _get_subject_id(*, path: str, **kwargs) -> str:
     return subject_id
 
 
+def _check_for_scans(*, path: str, **kwargs) -> bool:
+    if os.listdir(path):
+        return True
+
+
 # todo: set default args dict
 # todo: rename DAG after testing
-with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1), catchup=False) as dag:
-
+with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8, 1), catchup=False) as dag:
     with TaskGroup(group_id='init') as init_tg:
-
-        make_raw_staging_path = PythonOperator(
-            task_id='set-raw-staging-path',
-            python_callable=_make_raw_staging_path,
-            op_kwargs={
-                'path': "{{ var.value.asl_raw_path }}"
-            }
-        )
-
         make_proc_staging_path = PythonOperator(
             task_id='set-proc-staging-path',
             python_callable=_make_proc_staging_path,
@@ -149,18 +144,14 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
             }
         )
 
-        dicom_sort = DummyOperator(
-            task_id='dicom-sort'
+        dicom_sort = PythonOperator(
+            task_id='dicom-sort',
+            python_callable=DicomSorter,
+            op_kwargs={
+                'source': "{{ var.value.disk_drive }}",
+                'target': "{{ var.value.asl_raw_path }}"
+            }
         )
-        # dicom_sort = PythonOperator(
-        #     task_id='dicom-sort',
-        #     python_callable=DicomSorter,
-        #     op_kwargs={
-        #         'source': "{{ var.value.disk_drive }}",
-        #         'target': "{{ var.value.asl_raw_path }}"
-        #     }
-        # )
-        [make_raw_staging_path, make_proc_staging_path] >> dicom_sort
 
         get_t1_path = PythonOperator(
             task_id='get-t1-path',
@@ -169,7 +160,7 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
                 'path': "{{ var.value.asl_raw_path }}"
             }
         )
-        dicom_sort >> get_t1_path
+        [make_proc_staging_path, dicom_sort] >> get_t1_path
 
         get_asl_sessions = PythonOperator(
             task_id='get-asl-sessions',
@@ -184,7 +175,7 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
             task_id='get-subject-id',
             python_callable=_get_subject_id,
             op_kwargs={
-                'path': "{{ var.value.asl_raw_path }}"
+                'path': "{{ ti.xcom_pull(task_ids='init.get-t1-path') }}"
             }
         )
         get_t1_path >> get_subject_id
