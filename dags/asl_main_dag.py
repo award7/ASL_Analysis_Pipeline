@@ -13,6 +13,7 @@ from pydicom import read_file as dcm_read_file
 from datetime import datetime
 import os
 from glob import glob
+import matlab
 
 
 def _make_raw_staging_path(*, path: str, **kwargs) -> None:
@@ -250,7 +251,6 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         # following segmentation, by default SPM creates a few files prefaced with `c` for each tissue segmentation, a `y`
         # file for the deformation field, and a `*seg8*.mat` file for tissue volume matrix
         # therefore, it's best to keep to the default naming convention by spm to ensure the pipeline stays intact
-
         get_gm_file = PythonOperator(
             task_id='get-gm-file',
             python_callable=_get_file,
@@ -281,22 +281,18 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         )
         segment_t1 >> get_forward_deformation_file
 
-        smooth_gm = DummyOperator(
-            task_id='smooth'
+        smooth_gm = MatlabOperator(
+            task_id='smooth',
+            matlab_function='smooth_t1',
+            matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+            op_args=[
+                "{{ ti.xcom_pull(task_ids='t1.get-gm-file') }}"
+            ],
+            op_kwargs={
+                'fwhm': matlab.double([8, 8, 8])
+            }
         )
-        # smooth_gm = MatlabOperator(
-        #     task_id='smooth',
-        #     matlab_function='sl_smooth',
-        #     op_args=[
-        #         "{{ ti.xcom_pull(task_ids='segment-t1-image') }}"
-        #     ],
-        #     op_kwargs={
-        #         'fwhm': '[8 8 8]',
-        #         'outdir': "{{ var.value.asl_proc_path }}",
-        #         'nargout': 1
-        #     }
-        # )
-        segment_t1 >> smooth_gm
+        get_gm_file >> smooth_gm
 
         get_brain_volumes = DummyOperator(
             task_id='get-brain-volumes'
