@@ -167,7 +167,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         )
         dicom_sort >> get_t1_path
 
-        get_asl_sessions = PythonOperator(
+        get_asl_sessions = ShortCircuitOperator(
             task_id='get-asl-sessions',
             python_callable=_get_asl_sessions,
             op_kwargs={
