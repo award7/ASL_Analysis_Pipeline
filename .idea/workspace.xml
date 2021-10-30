@@ -4,12 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="un-nested mask directory">
+    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="added smooth_gm">
       <change afterPath="$PROJECT_DIR$/dags/tmp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dags/asl_main_dag.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/asl_main_dag.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mat/segment_t1.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/segment_t1.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mat/smooth_t1.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/smooth_t1.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mat/brain_volumes.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/brain_volumes.m" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -294,7 +292,119 @@
       <option name="project" value="LOCAL" />
       <updated>1635529268465</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="added _check_for_scans function; may utilize as sensor">
+      <created>1635557864846</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1635557864846</updated>
+    </task>
+    <task id="LOCAL-00008" summary="fixed _get_subject_id">
+      <created>1635557913408</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1635557913408</updated>
+    </task>
+    <task id="LOCAL-00009" summary="fixed _get_asl_sessions">
+      <created>1635557974374</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1635557974374</updated>
+    </task>
+    <task id="LOCAL-00010" summary="fixed _count_t1_images">
+      <created>1635557996930</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1635557996930</updated>
+    </task>
+    <task id="LOCAL-00011" summary="added _get_file">
+      <created>1635558033001</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1635558033001</updated>
+    </task>
+    <task id="LOCAL-00012" summary="added logic around spm move batch">
+      <created>1635558066027</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1635558066027</updated>
+    </task>
+    <task id="LOCAL-00013" summary="added logic around spm move batch">
+      <created>1635558070154</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1635558070154</updated>
+    </task>
+    <task id="LOCAL-00014" summary="removed make_proc_staging_path">
+      <created>1635558154987</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1635558154987</updated>
+    </task>
+    <task id="LOCAL-00015" summary="changed `get_asl_sessions` to ShortCircuitOperator">
+      <created>1635558203015</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1635558203015</updated>
+    </task>
+    <task id="LOCAL-00016" summary="changed init_tg order">
+      <created>1635558291677</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1635558291677</updated>
+    </task>
+    <task id="LOCAL-00017" summary="fixed count_t1_images for correct xcom_pull">
+      <created>1635558343957</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1635558343957</updated>
+    </task>
+    <task id="LOCAL-00018" summary="added trigger_rule to build_dcm2niix_image">
+      <created>1635558475533</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1635558475533</updated>
+    </task>
+    <task id="LOCAL-00019" summary="changed order of counting_t1 &gt;&gt; build_dcm2niix &gt;&gt; dcm2niix">
+      <created>1635558573988</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1635558573988</updated>
+    </task>
+    <task id="LOCAL-00020" summary="added segment_t1">
+      <created>1635558595037</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1635558595037</updated>
+    </task>
+    <task id="LOCAL-00021" summary="added operators to fetch segmented files">
+      <created>1635558653988</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1635558653988</updated>
+    </task>
+    <task id="LOCAL-00022" summary="added smooth_gm">
+      <created>1635558790075</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1635558790075</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -320,7 +430,22 @@
     <MESSAGE value="added dynamic task generation for masking" />
     <MESSAGE value="update matlab functions" />
     <MESSAGE value="un-nested mask directory" />
-    <option name="LAST_COMMIT_MESSAGE" value="un-nested mask directory" />
+    <MESSAGE value="added _check_for_scans function; may utilize as sensor" />
+    <MESSAGE value="fixed _get_subject_id" />
+    <MESSAGE value="fixed _get_asl_sessions" />
+    <MESSAGE value="fixed _count_t1_images" />
+    <MESSAGE value="added _get_file" />
+    <MESSAGE value="added logic around spm move batch" />
+    <MESSAGE value="removed make_proc_staging_path" />
+    <MESSAGE value="changed `get_asl_sessions` to ShortCircuitOperator" />
+    <MESSAGE value="changed init_tg order" />
+    <MESSAGE value="fixed count_t1_images for correct xcom_pull" />
+    <MESSAGE value="added trigger_rule to build_dcm2niix_image" />
+    <MESSAGE value="changed order of counting_t1 &gt;&gt; build_dcm2niix &gt;&gt; dcm2niix" />
+    <MESSAGE value="added segment_t1" />
+    <MESSAGE value="added operators to fetch segmented files" />
+    <MESSAGE value="added smooth_gm" />
+    <option name="LAST_COMMIT_MESSAGE" value="added smooth_gm" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -335,7 +460,7 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/asl_analysis_pipeline$asl_main_dag.coverage" NAME="asl_main_dag Coverage Results" MODIFIED="1635530742644" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dags" />
-    <SUITE FILE_PATH="coverage/asl_analysis_pipeline$tmp.coverage" NAME="tmp Coverage Results" MODIFIED="1635557390231" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dags" />
+    <SUITE FILE_PATH="coverage/asl_analysis_pipeline$tmp.coverage" NAME="tmp Coverage Results" MODIFIED="1635559368238" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dags" />
     <SUITE FILE_PATH="coverage/asl_analysis_pipeline$email_test.coverage" NAME="email_test Coverage Results" MODIFIED="1635551005337" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/dags" />
   </component>
 </project>

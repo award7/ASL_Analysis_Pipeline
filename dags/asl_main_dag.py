@@ -294,10 +294,16 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         )
         get_gm_file >> smooth_gm
 
-        get_brain_volumes = DummyOperator(
-            task_id='get-brain-volumes'
+        get_brain_volumes = MatlabOperator(
+            task_id='get-brain-volumes',
+            matlab_function='brain_volumes',
+            matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+            op_args=["{{ ti.xcom_pull(task_ids='t1.get-seg8mat-file') }}"],
+            op_kwargs={
+                'subject': "{{ ti.xcom_pull(task_ids='init.get-subject-id') }}"
+            }
         )
-        smooth_gm >> get_brain_volumes
+        get_seg8mat_file >> get_brain_volumes
 
     with TaskGroup(group_id='asl') as asl_tg:
         # dynamically create tasks based on number of asl sessions
