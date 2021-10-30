@@ -12,6 +12,7 @@ from airflow.utils.trigger_rule import TriggerRule
 from pydicom import read_file as dcm_read_file
 from datetime import datetime
 import os
+from glob import glob
 
 
 def _make_raw_staging_path(*, path: str, **kwargs) -> None:
@@ -134,6 +135,14 @@ def _get_subject_id(*, path: str, **kwargs) -> str:
 def _check_for_scans(*, path: str, **kwargs) -> bool:
     if os.listdir(path):
         return True
+
+
+def _get_file(*, path: str, search: str, **kwargs) -> str:
+    glob_string = os.path.join(path, search)
+    file = glob(glob_string)
+    if len(file) > 1:
+        raise ValueError("Too many files found")
+    return file[0]
 
 
 # todo: set default args dict
