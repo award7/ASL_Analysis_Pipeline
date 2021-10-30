@@ -149,14 +149,6 @@ def _get_file(*, path: str, search: str, **kwargs) -> str:
 # todo: rename DAG after testing
 with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8, 1), catchup=False) as dag:
     with TaskGroup(group_id='init') as init_tg:
-        make_proc_staging_path = PythonOperator(
-            task_id='set-proc-staging-path',
-            python_callable=_make_proc_staging_path,
-            op_kwargs={
-                'path': "{{ var.value.asl_proc_path }}"
-            }
-        )
-
         dicom_sort = PythonOperator(
             task_id='dicom-sort',
             python_callable=DicomSorter,
@@ -173,7 +165,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                 'path': "{{ var.value.asl_raw_path }}"
             }
         )
-        [make_proc_staging_path, dicom_sort] >> get_t1_path
+        dicom_sort >> get_t1_path
 
         get_asl_sessions = PythonOperator(
             task_id='get-asl-sessions',
