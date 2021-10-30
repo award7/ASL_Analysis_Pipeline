@@ -207,6 +207,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
             tag="asl/dcm2niix",
             trigger_rule=TriggerRule.NONE_FAILED
         )
+        [count_t1_images, reslice_t1] >> build_dcm2niix_image
 
         dcm2niix = DockerTemplatedMountsOperator(
             task_id='dcm2niix',
@@ -234,7 +235,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
             auto_remove=True,
             do_xcom_push=True
         )
-        [build_dcm2niix_image, reslice_t1] >> dcm2niix
+        build_dcm2niix_image >> dcm2niix
 
         segment_t1 = DummyOperator(
             task_id='segment-t1-image'
