@@ -237,21 +237,14 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         )
         build_dcm2niix_image >> dcm2niix
 
-        segment_t1 = DummyOperator(
-            task_id='segment-t1-image'
+        segment_t1 = MatlabOperator(
+            task_id='segment-t1-image',
+            matlab_function='segment_t1',
+            matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+            op_args=[
+                "{{ var.value.asl_proc_path }}/{{ ti.xcom_pull(task_ids='t1.dcm2niix') }}"
+            ]
         )
-        # segment_t1 = MatlabOperator(
-        #     task_id='segment-t1-image',
-        #     matlab_function='segment_t1',
-        #     matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
-        #     op_args=[
-        #         "{{ ti.xcom_pull(task_ids='dcm2niix') }}"
-        #     ],
-        #     op_kwargs={
-        #         'outdir': "{{ var.value.asl_proc_path }}",
-        #         'nargout': 3
-        #     }
-        # )
         dcm2niix >> segment_t1
 
         # following segmentation, by default SPM creates a few files prefaced with `c` for each tissue segmentation, a `y`
