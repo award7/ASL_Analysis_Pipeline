@@ -102,14 +102,14 @@ def _get_protocol_name(*, path: str, **kwargs) -> str:
 
 def _count_t1_images(*, path: str, **kwargs) -> str:
     files_in_folder = os.listdir(path)
-    dcm = dcm_read_file(files_in_folder[0])
+    dcm = dcm_read_file(os.path.join(path, files_in_folder[0]))
     images_in_acquisition = getattr(dcm, 'ImagesInAcquisition')
     file_count = len(files_in_folder)
 
     if file_count < images_in_acquisition:
         return 'reslice-t1'
     else:
-        return 'build-dcm2niix-image'
+        return 't1.build-dcm2niix-image'
 
 
 def _count_asl_images(*, path: str, success_task_id: str, **kwargs) -> str:
