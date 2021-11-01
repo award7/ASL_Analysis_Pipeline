@@ -26,6 +26,7 @@ def _make_dir(*, path: Union[str, List[str]], **kwargs) -> None:
             _path = os.path.join(_path, item)
         path = _path
     os.makedirs(path, exist_ok=True)
+    return path
 
 
 def _t1_scan_names() -> list:
@@ -257,7 +258,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                 },
                 {
                     'target': '/out',
-                    'source': "{{ var.value.asl_proc_path }}",
+                    'source': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
                     'type': 'bind'
                 },
             ],
@@ -271,7 +272,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
             matlab_function='segment_t1',
             matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
             op_args=[
-                "{{ var.value.asl_proc_path }}/{{ ti.xcom_pull(task_ids='t1.dcm2niix') }}"
+                "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}/{{ ti.xcom_pull(task_ids='t1.dcm2niix') }}"
             ]
         )
         dcm2niix >> segment_t1
@@ -283,7 +284,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
             task_id='get-gm-file',
             python_callable=_get_file,
             op_kwargs={
-                'path': "{{ var.value.asl_proc_path }}",
+                'path': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
                 'search': "c1*"
             }
         )
@@ -293,7 +294,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
             task_id='get-seg8mat-file',
             python_callable=_get_file,
             op_kwargs={
-                'path': "{{ var.value.asl_proc_path }}",
+                'path': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
                 'search': "*seg8.mat"
             }
         )
@@ -303,7 +304,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
             task_id='get-forward_deformation-file',
             python_callable=_get_file,
             op_kwargs={
-                'path': "{{ var.value.asl_proc_path }}",
+                'path': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
                 'search': "y*"
             }
         )
@@ -379,12 +380,12 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                     mounts=[
                         {
                             'target': '/in',
-                            'source': r'/mnt/hgfs/bucket/asl/raw/3D_ASL_(non-contrast)_Series0007',
+                            'source': f"{{ ti.xcom_pull(task_ids='init.get-asl-sessions', key='path{session}') }}",
                             'type': 'bind'
                         },
                         {
                             'target': '/out',
-                            'source': "{{ var.value.asl_proc_path }}",
+                            'source': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
                             'type': 'bind'
                         }
                     ],
@@ -403,14 +404,18 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                     task_id=f'pcasl-{session}',
                     # need to get the file created by to3d, strip all characters after `+`, feed that to 3df_pcasl, then get the
                     # file that was created for xcom
-                    bash_command="""file={{ ti.xcom_pull(task_ids='afni-to3d') }}; input=${file%+*}; 3df_pcasl -odata {{ var.value.asl_proc_path }}/${input} -nex 3; ls {{ var.value.asl_proc_path }}/*fmap*.BRIK | sed \'s#.*/##\'""",
+                    bash_command="""file={{ params.file }}; input=${file%+*}; 3df_pcasl -odata {{ params.path }}/${input} -nex 3; ls {{ params.path }}/*fmap*.BRIK | sed \'s#.*/##\'""",
+                    params={
+                        'file': f"{{ ti.xcom_pull(task_ids='afni-to3d-{session}') }}",
+                        'path': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}"
+                    },
                     do_xcom_push=True
                 )
 
                 afni_3dcalc_fmap = DockerTemplatedMountsOperator(
                     task_id=f'afni-3dcalc-fmap-{session}',
                     image='asl/afni',
-                    command=f"""/bin/bash -c \'{'; '.join(['file={{ ti.xcom_pull(task_ids="pcasl") }}',
+                    command=f"""/bin/bash -c \'{'; '.join(['file={{ params.file }}',
                                                            'stripped_ext=${file%.BRIK}',
                                                            'stripped_prefix=${stripped_ext#zt_}',
                                                            '3dcalc -a /data/${stripped_prefix}.[{{ params.map }}] -datum float -expr "a" -prefix ASL_${stripped_prefix}.nii',
@@ -419,12 +424,13 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                                                            ]
                                                           )}\'""",
                     params={
+                        'file': f"{{ ti.xcom_pull(task_ids='pcasl-{session}') }}",
                         'map': '0',
                     },
                     mounts=[
                         {
                             'target': '/data',
-                            'source': "{{ var.value.asl_proc_path }}",
+                            'source': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
                             'type': 'bind'
                         }
                     ]
