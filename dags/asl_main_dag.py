@@ -19,8 +19,12 @@ import matlab
 from typing import Union, List
 
 
-def _make_raw_staging_path(*, path: str, **kwargs) -> None:
-    # this is where the dicom files will be sorted after reading from disk
+def _make_dir(*, path: Union[str, List[str]], **kwargs) -> None:
+    if isinstance(path, list):
+        _path = ""
+        for item in path:
+            _path = os.path.join(_path, item)
+        path = _path
     os.makedirs(path, exist_ok=True)
 
 
