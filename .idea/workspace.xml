@@ -4,8 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="fixed 'subj' variable naming error">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="added tasks for afni and pcasl">
       <change beforePath="$PROJECT_DIR$/dags/asl_main_dag.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/asl_main_dag.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dags/tmp.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/tmp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker/dcm2niix/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/docker/dcm2niix/Dockerfile" afterDir="false" />
@@ -422,7 +421,14 @@
       <option name="project" value="LOCAL" />
       <updated>1635559915893</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="added tasks for afni and pcasl">
+      <created>1635799062134</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1635799062140</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -465,7 +471,8 @@
     <MESSAGE value="added smooth_gm" />
     <MESSAGE value="added get_brain_volumes" />
     <MESSAGE value="fixed 'subj' variable naming error" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed 'subj' variable naming error" />
+    <MESSAGE value="added tasks for afni and pcasl" />
+    <option name="LAST_COMMIT_MESSAGE" value="added tasks for afni and pcasl" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

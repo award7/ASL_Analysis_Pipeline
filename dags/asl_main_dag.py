@@ -7,23 +7,20 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.dummy import DummyOperator
 from airflow.utils.task_group import TaskGroup
 from operators.matlab_operator import MatlabOperator
-from dicomsort.dicomsorter import DicomSorter
 from airflow.models import Variable
 from airflow.utils.trigger_rule import TriggerRule
+
+from dicomsort.dicomsorter import DicomSorter
 from pydicom import read_file as dcm_read_file
 from datetime import datetime
 import os
 from glob import glob
 import matlab
+from typing import Union, List
 
 
 def _make_raw_staging_path(*, path: str, **kwargs) -> None:
     # this is where the dicom files will be sorted after reading from disk
-    os.makedirs(path, exist_ok=True)
-
-
-def _make_proc_staging_path(*, path: str, **kwargs) -> None:
-    # this is where analyzed files (.nii, .BRIK, etc.) will be stored
     os.makedirs(path, exist_ok=True)
 
 
@@ -151,6 +148,25 @@ def _get_file(*, path: str, search: str, **kwargs) -> str:
 # todo: rename DAG after testing
 with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8, 1), catchup=False) as dag:
     with TaskGroup(group_id='init') as init_tg:
+        get_subject_id = PythonOperator(
+            task_id='get-subject-id',
+            python_callable=_get_subject_id,
+            op_kwargs={
+                'path': "{{ var.value.disk_drive }}"
+            }
+        )
+
+        # this is where the dicom files will be sorted after reading from disk
+        make_raw_staging_path = PythonOperator(
+            task_id='make-raw-staging-path',
+            python_callable=_make_dir,
+            op_kwargs={
+                'path': "{{ var.value.asl_raw_path }}"
+            }
+        )
+
+        # this is where analyzed files (.nii, .BRIK, etc.) will be stored
+
         dicom_sort = PythonOperator(
             task_id='dicom-sort',
             python_callable=DicomSorter,
@@ -177,15 +193,6 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
             }
         )
         dicom_sort >> get_t1_path
-
-        get_subject_id = PythonOperator(
-            task_id='get-subject-id',
-            python_callable=_get_subject_id,
-            op_kwargs={
-                'path': "{{ ti.xcom_pull(task_ids='init.get-t1-path') }}"
-            }
-        )
-        get_t1_path >> get_subject_id
 
     with TaskGroup(group_id='t1') as t1_tg:
         count_t1_images = BranchPythonOperator(
@@ -290,7 +297,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                 "{{ ti.xcom_pull(task_ids='t1.get-gm-file') }}"
             ],
             op_kwargs={
-                'fwhm': matlab.double([8, 8, 8])
+                'fwhm': matlab.double([5, 5, 5])
             }
         )
         get_gm_file >> smooth_gm
@@ -326,7 +333,6 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         init_tg >> build_fsl_image
 
         for session in range(0, asl_sessions):
-            # basename = os.path.basename(session)
             with TaskGroup(group_id=f'asl-session-{session}') as asl_session_tg:
                 count_asl_images = BranchPythonOperator(
                     task_id=f'count-asl-images-{session}',
@@ -428,9 +434,16 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                 )
                 pcasl >> [afni_3dcalc_fmap, afni_3dcalc_pdmap]
 
-                # todo: change to matlab operator
-                coregister = DummyOperator(
-                    task_id=f'coregister-{session}'
+                coregister = MatlabOperator(
+                    task_id=f'coregister-{session}',
+                    matlab_function='coregister_asl.m',
+                    matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+                    op_args=[
+                        "{{ ti.xcom_pull(task_ids='') }}"
+                    ],
+                    op_kwargs={
+
+                    }
                 )
                 [smooth_gm, afni_3dcalc_fmap, afni_3dcalc_pdmap] >> coregister
 
