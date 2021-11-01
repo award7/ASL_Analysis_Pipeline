@@ -331,15 +331,35 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                     task_id=f'count-asl-images-{idx}',
                     python_callable=_count_asl_images,
                     op_kwargs={
-                        'path': f"{{ ti.xcom_pull(task_ids='get-asl-sessions', key='path{idx}') }}",
+                        'path': f"{{ ti.xcom_pull(task_ids='init.get-asl-sessions', key='path{idx}') }}",
                         'success_task_id': f'afni-to3d-{idx}'
                     }
                 )
                 init_tg >> count_asl_images
 
                 # todo: change to docker operator
-                afni_to3d = DummyOperator(
-                    task_id=f'afni-to3d-{idx}'
+                afni_to3d = DockerTemplatedMountsOperator(
+                    task_id=f'afni-to3d-{idx}',
+                    command="{{ var.value.3d_calc_script }} {{ params.path }} {{ params.subject }} {{ params.outdir }} ",
+                    params={
+                        'path': "{{ ti.xcom_pull(task_ids='init.get-asl-sessions', key='path{idx}') }}",
+                        'subject': "{{ ti.xcom_pull(task_ids='init.get-subject-id')",
+                        'outdir': "{{ var.value.asl_proc_path }}"
+                    },
+                    mounts=[
+                        {
+                            'target': '/in',
+                            'source': f"{{ ti.xcom_pull(task_ids='asl-session-{idx}.count-asl-images-{idx}') }}",
+                            'type': 'bind'
+                        },
+                        {
+                            'target': '/out',
+                            'source': "{{ var.value.asl_proc_path }}",
+                            'type': 'bind'
+                        },
+                    ],
+                    auto_remove=True,
+                    do_xcom_push=True
                 )
                 [build_afni_image, count_asl_images] >> afni_to3d
 
