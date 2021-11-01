@@ -1,4 +1,4 @@
-function coregister_asl(ref, src, opts)
+function file = coregister_asl(ref, src, opts)
 
     % COREGISTER Coregister MRI images
     %
@@ -65,11 +65,15 @@ function coregister_asl(ref, src, opts)
     matlabbatch{1}.spm.spatial.coreg.estwrite.rmask = 0;
     matlabbatch{1}.spm.spatial.coreg.estwrite.rprefix = opts.prefix;
 
-    % matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.files(1) = cfg_dep('Coregister: Estimate & Reslice: Coregistered Images', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','cfiles'));
-    % matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.files(2) = cfg_dep('Coregister: Estimate & Reslice: Resliced Images', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','rfiles'));
-    % matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveto = {char(opts.outdir)};
-
-    % TODO: make move function, return file name(s)
+    [source_path, ~, ~] = fileparts(img);
+    if ~strcmp(opts.outdir, source_path)
+        matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.files(1) = cfg_dep('Coregister: Estimate & Reslice: Coregistered Images', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','cfiles'));
+        matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.files(2) = cfg_dep('Coregister: Estimate & Reslice: Resliced Images', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','rfiles'));
+        matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveto = {char(opts.outdir)};
+    end
     
     spm_jobman('run', matlabbatch)
+    
+    % return file name
+    file = find_files_for_python_engine(opts.outdir, strcat(opts.prefix, '*'));
 end

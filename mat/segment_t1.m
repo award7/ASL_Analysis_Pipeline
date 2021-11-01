@@ -1,4 +1,4 @@
-function segment_t1(img, opts)
+function vargout = segment_t1(img, opts)
     % SEGMENT segment T1 image
     %
     % Requried arguments:
@@ -92,5 +92,15 @@ function segment_t1(img, opts)
     end
 
     spm_jobman('run', matlabbatch);
+    
+    % return files
+    vargout{1} = find_files_for_python_engine(opts.outdir, 'c1*.nii');
+    vargout{1} = find_files_for_python_engine(opts.outdir, 'c2*.nii');
+    vargout{1} = find_files_for_python_engine(opts.outdir, 'c3*.nii');
+    vargout{1} = find_files_for_python_engine(opts.outdir, 'c4*.nii');
+    vargout{1} = find_files_for_python_engine(opts.outdir, 'c5*.nii');
+    vargout{1} = find_files_for_python_engine(opts.outdir, 'm*.nii');
+    vargout{1} = find_files_for_python_engine(opts.outdir, 'y*.nii');
+    vargout{1} = find_files_for_python_engine(opts.outdir, '*seg8.mat');
     
 end

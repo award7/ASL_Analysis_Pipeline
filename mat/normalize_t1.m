@@ -1,4 +1,4 @@
-function normalize_t1(img, deform_field, bias, opts)
+function file = normalize_t1(img, deform_field, bias, opts)
     % NORMALIZE Normalize image to new space
     % 
     % Required arguments:
@@ -74,11 +74,16 @@ function normalize_t1(img, deform_field, bias, opts)
     % matlabbatch{2}.spm.spatial.smooth.im = 0;
     % matlabbatch{2}.spm.spatial.smooth.prefix = 's';
 
-    % matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.files(1) = cfg_dep('Normalise: Write: Normalised Images (Subj 1)', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{1}, '.','files'));
-    % matlabbatch{3}.cfg_basicio.file_dir.file_ops.file_move.files(2) = cfg_dep('Smooth: Smoothed Images', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
-    % matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveto = {char(opts.outdir)};
+    [source_path, ~, ~] = fileparts(img);
+    if ~strcmp(opts.outdir, source_path)
+        matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.files(1) = cfg_dep('Normalise: Write: Normalised Images (Subj 1)', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('()',{1}, '.','files'));
+        % matlabbatch{3}.cfg_basicio.file_dir.file_ops.file_move.files(2) = cfg_dep('Smooth: Smoothed Images', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
+        matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveto = {char(opts.outdir)};
+    end
 
     spm_jobman('run', matlabbatch);
     
-    % TODO: move file, return file path
+    % return file
+    file = find_files_for_python_engine(opts.outdir, strcat(opts.prefix, '*'));
+    
 end
