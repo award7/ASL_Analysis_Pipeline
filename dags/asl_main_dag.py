@@ -165,20 +165,36 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
             task_id='make-raw-staging-path',
             python_callable=_make_dir,
             op_kwargs={
-                'path': "{{ var.value.asl_raw_path }}"
+                'path': [
+                    "{{ var.value.asl_raw_path }}",
+                    "{{ ti.xcom_pull(task_ids='init.get-subject-id') }}"
+                ]
             }
         )
+        get_subject_id >> make_raw_staging_path
 
         # this is where analyzed files (.nii, .BRIK, etc.) will be stored
+        make_proc_path = PythonOperator(
+            task_id='make-proc-path',
+            python_callable=_make_dir,
+            op_kwargs={
+                'path': [
+                    "{{ var.value.asl_proc_path }}",
+                    "{{ ti.xcom_pull(task_ids='init.get-subject-id') }}"
+                ]
+            }
+        )
+        get_subject_id >> make_proc_path
 
         dicom_sort = PythonOperator(
             task_id='dicom-sort',
             python_callable=DicomSorter,
             op_kwargs={
                 'source': "{{ var.value.disk_drive }}",
-                'target': "{{ var.value.asl_raw_path }}"
+                'target': "{{ ti.xcom_pull(task_ids='init.make-raw-staging-path') }}"
             }
         )
+        [make_raw_staging_path, make_proc_path] >> dicom_sort
 
         get_asl_sessions = ShortCircuitOperator(
             task_id='get-asl-sessions',
