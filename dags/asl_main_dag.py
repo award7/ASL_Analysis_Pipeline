@@ -3,6 +3,7 @@ from airflow.operators.python import PythonOperator, BranchPythonOperator, Short
 from operators.docker_templated_mounts_operator import DockerTemplatedMountsOperator
 from operators.docker_remove_image import DockerRemoveImage
 from operators.docker_build_local_image_operator import DockerBuildLocalImageOperator
+from airflow.operators.bash import BashOperator
 from airflow.operators.dummy import DummyOperator
 from airflow.utils.task_group import TaskGroup
 from operators.matlab_operator import MatlabOperator
@@ -324,117 +325,163 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         )
         init_tg >> build_fsl_image
 
-        for idx in range(0, asl_sessions):
+        for session in range(0, asl_sessions):
             # basename = os.path.basename(session)
-            with TaskGroup(group_id=f'asl-session-{idx}') as asl_session_tg:
+            with TaskGroup(group_id=f'asl-session-{session}') as asl_session_tg:
                 count_asl_images = BranchPythonOperator(
-                    task_id=f'count-asl-images-{idx}',
+                    task_id=f'count-asl-images-{session}',
                     python_callable=_count_asl_images,
                     op_kwargs={
-                        'path': f"{{ ti.xcom_pull(task_ids='init.get-asl-sessions', key='path{idx}') }}",
-                        'success_task_id': f'afni-to3d-{idx}'
+                        'path': f"{{ ti.xcom_pull(task_ids='init.get-asl-sessions', key='path{session}') }}",
+                        'success_task_id': f'afni-to3d-{session}'
                     }
                 )
                 init_tg >> count_asl_images
 
-                # todo: change to docker operator
                 afni_to3d = DockerTemplatedMountsOperator(
-                    task_id=f'afni-to3d-{idx}',
-                    command="{{ var.value.3d_calc_script }} {{ params.path }} {{ params.subject }} {{ params.outdir }} ",
-                    params={
-                        'path': "{{ ti.xcom_pull(task_ids='init.get-asl-sessions', key='path{idx}') }}",
-                        'subject': "{{ ti.xcom_pull(task_ids='init.get-subject-id')",
-                        'outdir': "{{ var.value.asl_proc_path }}"
-                    },
+                    task_id=f'afni-to3d-{session}',
+                    image='asl/afni',
+                    command=f"""/bin/bash -c \'{'; '.join(['dcmcount=$(ls {{ params.input }} | wc -l)',
+                                                           'nt=$(($dcmcount / 2))',
+                                                           'tr=1000',
+                                                           'file="zt_{{ params.subject }}_{{ params.session }}"',
+                                                           'to3d -prefix "$file" -fse -time:zt ${nt} 2 ${tr} seq+z "{{ params.input }}"/*',
+                                                           'echo "${file}.BRIK" | sed "s#.*/##"',
+                                                           'mv zt* -t "{{ params.outdir }}"'
+                                                           ]
+                                                          )}\'""",
                     mounts=[
                         {
                             'target': '/in',
-                            'source': f"{{ ti.xcom_pull(task_ids='asl-session-{idx}.count-asl-images-{idx}') }}",
+                            'source': r'/mnt/hgfs/bucket/asl/raw/3D_ASL_(non-contrast)_Series0007',
                             'type': 'bind'
                         },
                         {
                             'target': '/out',
                             'source': "{{ var.value.asl_proc_path }}",
                             'type': 'bind'
-                        },
+                        }
                     ],
+                    params={
+                        'input': '/in',
+                        'outdir': '/out',
+                        'subject': 'test',
+                        'session': f'{session}'
+                    },
                     auto_remove=True,
                     do_xcom_push=True
                 )
                 [build_afni_image, count_asl_images] >> afni_to3d
 
-                # todo: change to bash operator
-                pcasl = DummyOperator(
-                    task_id=f'3df-pcasl-{idx}'
-                )
-                afni_to3d >> pcasl
-
-                # todo: change to docker operator
-                # todo: make fmap and pdmap parallel
-                afni_3dcalc_fmap = DummyOperator(
-                    task_id=f'afni-3dcalc-fmap-{idx}'
+                pcasl = BashOperator(
+                    task_id=f'pcasl-{session}',
+                    # need to get the file created by to3d, strip all characters after `+`, feed that to 3df_pcasl, then get the
+                    # file that was created for xcom
+                    bash_command="""file={{ ti.xcom_pull(task_ids='afni-to3d') }}; input=${file%+*}; 3df_pcasl -odata {{ var.value.asl_proc_path }}/${input} -nex 3; ls {{ var.value.asl_proc_path }}/*fmap*.BRIK | sed \'s#.*/##\'""",
+                    do_xcom_push=True
                 )
 
-                # todo: change to docker operator
-                afni_3dcalc_pdmap = DummyOperator(
-                    task_id=f'afni-3dcalc-pdmap-{idx}'
+                afni_3dcalc_fmap = DockerTemplatedMountsOperator(
+                    task_id=f'afni-3dcalc-fmap-{session}',
+                    image='asl/afni',
+                    command=f"""/bin/bash -c \'{'; '.join(['file={{ ti.xcom_pull(task_ids="pcasl") }}',
+                                                           'stripped_ext=${file%.BRIK}',
+                                                           'stripped_prefix=${stripped_ext#zt_}',
+                                                           '3dcalc -a /data/${stripped_prefix}.[{{ params.map }}] -datum float -expr "a" -prefix ASL_${stripped_prefix}.nii',
+                                                           'mv "ASL_${stripped_prefix}.nii" -t /data',
+                                                           'echo "ASL_${stripped_prefix}.nii"'
+                                                           ]
+                                                          )}\'""",
+                    params={
+                        'map': '0',
+                    },
+                    mounts=[
+                        {
+                            'target': '/data',
+                            'source': "{{ var.value.asl_proc_path }}",
+                            'type': 'bind'
+                        }
+                    ]
+                )
+
+                afni_3dcalc_pdmap = DockerTemplatedMountsOperator(
+                    task_id=f'afni-3dcalc-pdmap-{session}',
+                    image='asl/afni',
+                    command=f"""/bin/bash -c \'{'; '.join(['file={{ ti.xcom_pull(task_ids="pcasl") }}',
+                                                           'stripped_ext=${file%.BRIK}',
+                                                           'stripped_prefix=${stripped_ext#zt_}',
+                                                           '3dcalc -a /data/${stripped_prefix}.[{{ params.map }}] -datum float -expr "a" -prefix ASL_${stripped_prefix}.nii',
+                                                           'mv "ASL_${stripped_prefix}.nii" -t /data',
+                                                           'echo "ASL_${stripped_prefix}.nii"'
+                                                           ]
+                                                          )}\'""",
+                    params={
+                        'map': '1',
+                    },
+                    mounts=[
+                        {
+                            'target': '/data',
+                            'source': "{{ var.value.asl_proc_path }}",
+                            'type': 'bind'
+                        }
+                    ]
                 )
                 pcasl >> [afni_3dcalc_fmap, afni_3dcalc_pdmap]
 
                 # todo: change to matlab operator
                 coregister = DummyOperator(
-                    task_id=f'coregister-{idx}'
+                    task_id=f'coregister-{session}'
                 )
                 [smooth_gm, afni_3dcalc_fmap, afni_3dcalc_pdmap] >> coregister
 
                 # todo: change to matlab operator
                 normalize = DummyOperator(
-                    task_id=f'normalize-{idx}'
+                    task_id=f'normalize-{session}'
                 )
                 coregister >> normalize
 
                 # todo: change to matlab operator
                 smooth_coregistered_image = DummyOperator(
-                    task_id=f'smooth-coregistered-image-{idx}'
+                    task_id=f'smooth-coregistered-image-{session}'
                 )
                 normalize >> smooth_coregistered_image
 
                 # todo: change to matlab operator
                 apply_icv_mask = DummyOperator(
-                    task_id=f'apply-icv-mask-{idx}'
+                    task_id=f'apply-icv-mask-{session}'
                 )
                 smooth_coregistered_image >> apply_icv_mask
 
                 # todo: change to matlab operator
                 create_perfusion_mask = DummyOperator(
-                    task_id=f'create-perfusion-mask-{idx}'
+                    task_id=f'create-perfusion-mask-{session}'
                 )
                 apply_icv_mask >> create_perfusion_mask
 
                 # todo: change to matlab operator
                 get_global_perfusion = DummyOperator(
-                    task_id=f'get-global-perfusion-{idx}'
+                    task_id=f'get-global-perfusion-{session}'
                 )
                 create_perfusion_mask >> get_global_perfusion
 
-                with TaskGroup(group_id=f'roi-{idx}') as roi_tg:
+                with TaskGroup(group_id=f'roi-{session}') as roi_tg:
                     for roi in range(0, 100):
                         # todo: change to matlab operator
                         inverse_warp_mask = DummyOperator(
-                            task_id=f'inverse-warp-mask-{idx}-{roi}'
+                            task_id=f'inverse-warp-mask-{session}-{roi}'
                         )
                         create_perfusion_mask >> inverse_warp_mask
 
                         # todo: change to matlab operator
                         restrict_gm_to_mask = DummyOperator(
-                            task_id=f'restrict-gm-to-mask-{idx}-{roi}'
+                            task_id=f'restrict-gm-to-mask-{session}-{roi}'
                         )
                         inverse_warp_mask >> restrict_gm_to_mask
 
                         # todo: change to docker operator
                         # todo: redirect stdout to .csv??
                         get_roi_perfusion = DummyOperator(
-                            task_id=f'get-roi-perfusion-{idx}-{roi}'
+                            task_id=f'get-roi-perfusion-{session}-{roi}'
                         )
                         [build_fsl_image, restrict_gm_to_mask] >> get_roi_perfusion
 
