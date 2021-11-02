@@ -3,13 +3,14 @@ from airflow.operators.python import PythonOperator, BranchPythonOperator, Short
 from operators.docker_templated_mounts_operator import DockerTemplatedMountsOperator
 from operators.docker_remove_image import DockerRemoveImage
 from operators.docker_build_local_image_operator import DockerBuildLocalImageOperator
-from airflow.operators.bash import BashOperator
+from operators.trigger_multi_dagrun import TriggerMultiDagRunOperator
 from airflow.operators.dummy import DummyOperator
 from airflow.utils.task_group import TaskGroup
 from operators.matlab_operator import MatlabOperator
 from airflow.models import Variable
 from airflow.utils.trigger_rule import TriggerRule
 
+import logging
 from dicomsort.dicomsorter import DicomSorter
 from pydicom import read_file as dcm_read_file
 from datetime import datetime
@@ -67,30 +68,17 @@ def _get_t1_path(*, path: str, **kwargs) -> str:
     return t1_paths[0]
 
 
-def _get_asl_sessions(*, path: str, **kwargs) -> bool:
+def _get_asl_sessions(*, path: str, **kwargs) -> list:
     """
-    find asl folders
+    find asl folders to trigger multiple asl-perfusion-processing dags
     :param is the target path for the dicom sorting
     """
     potential_asl_names = _asl_scan_names()
 
     # get lowest directories to search for asl directories
-    asl_paths = []
     for root, dirs, files in os.walk(path):
         if not dirs and any(name in root for name in potential_asl_names):
-            asl_paths.append(root)
-
-    if asl_paths:
-        # set to airflow variable for dynamic task generation
-        Variable.set("asl_sessions", len(asl_paths))
-
-        # return paths for xcom
-        ti = kwargs['ti']
-        for idx, path in enumerate(asl_paths):
-            ti.xcom_push(key=f"path{idx}", value=path)
-        return True
-    else:
-        return False
+            yield{'session': root}
 
 
 def _get_study_date(*, path: str, **kwargs) -> str:
@@ -112,21 +100,9 @@ def _count_t1_images(*, path: str, **kwargs) -> str:
     file_count = len(files_in_folder)
 
     if file_count < images_in_acquisition:
-        return 'reslice-t1'
+        return 't1.reslice-t1'
     else:
         return 't1.build-dcm2niix-image'
-
-
-def _count_asl_images(*, path: str, success_task_id: str, **kwargs) -> str:
-    files_in_folder = os.listdir(path)
-    dcm = dcm_read_file(files_in_folder[0])
-    images_in_acquisition = getattr(dcm, 'ImagesInAcquisition')
-    file_count = len(files_in_folder)
-
-    if file_count < images_in_acquisition:
-        return 'errors.missing-files'
-    else:
-        return success_task_id
 
 
 def _get_subject_id(*, path: str, **kwargs) -> str:
@@ -153,6 +129,15 @@ def _get_file(*, path: str, search: str, **kwargs) -> str:
 # todo: rename DAG after testing
 with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8, 1), catchup=False) as dag:
     with TaskGroup(group_id='init') as init_tg:
+        dicom_sort = PythonOperator(
+            task_id='dicom-sort',
+            python_callable=DicomSorter,
+            op_kwargs={
+                'source': "{{ var.value.disk_drive }}",
+                'target': "{{ ti.xcom_pull(task_ids='init.make-raw-staging-path') }}"
+            }
+        )
+
         get_subject_id = PythonOperator(
             task_id='get-subject-id',
             python_callable=_get_subject_id,
@@ -160,19 +145,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                 'path': "{{ var.value.disk_drive }}"
             }
         )
-
-        # this is where the dicom files will be sorted after reading from disk
-        make_raw_staging_path = PythonOperator(
-            task_id='make-raw-staging-path',
-            python_callable=_make_dir,
-            op_kwargs={
-                'path': [
-                    "{{ var.value.asl_raw_path }}",
-                    "{{ ti.xcom_pull(task_ids='init.get-subject-id') }}"
-                ]
-            }
-        )
-        get_subject_id >> make_raw_staging_path
+        dicom_sort >> get_subject_id
 
         # this is where analyzed files (.nii, .BRIK, etc.) will be stored
         make_proc_path = PythonOperator(
@@ -185,26 +158,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                 ]
             }
         )
-        get_subject_id >> make_proc_path
-
-        dicom_sort = PythonOperator(
-            task_id='dicom-sort',
-            python_callable=DicomSorter,
-            op_kwargs={
-                'source': "{{ var.value.disk_drive }}",
-                'target': "{{ ti.xcom_pull(task_ids='init.make-raw-staging-path') }}"
-            }
-        )
-        [make_raw_staging_path, make_proc_path] >> dicom_sort
-
-        get_asl_sessions = ShortCircuitOperator(
-            task_id='get-asl-sessions',
-            python_callable=_get_asl_sessions,
-            op_kwargs={
-                'path': "{{ var.value.asl_raw_path }}"
-            }
-        )
-        dicom_sort >> get_asl_sessions
+        dicom_sort >> make_proc_path
 
         get_t1_path = PythonOperator(
             task_id='get-t1-path',
@@ -215,7 +169,6 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         )
         dicom_sort >> get_t1_path
 
-    with TaskGroup(group_id='t1') as t1_tg:
         count_t1_images = BranchPythonOperator(
             task_id='count-t1-images',
             python_callable=_count_t1_images,
@@ -223,8 +176,9 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                 'path': "{{ ti.xcom_pull(task_ids='init.get-t1-path') }}"
             }
         )
-        init_tg >> count_t1_images
+        get_t1_path >> count_t1_images
 
+    with TaskGroup(group_id='t1') as t1_tg:
         # todo: build a reslice command in one of the MRI programs...
         reslice_t1 = DummyOperator(
             task_id='reslice-t1',
@@ -297,6 +251,16 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         )
         dcm2niix >> segment_t1
 
+        get_brain_volumes = MatlabOperator(
+            task_id='get-brain-volumes',
+            matlab_function='brain_volumes',
+            matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+            op_args=["{{ ti.xcom_pull(task_ids='t1.segment-t1-image', key='return_value2') }}"],
+            op_kwargs={
+                'subject': "{{ ti.xcom_pull(task_ids='init.get-subject-id') }}"
+            }
+        )
+        segment_t1 >> get_brain_volumes
 
         smooth_gm = MatlabOperator(
             task_id='smooth',
@@ -311,230 +275,14 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         )
         segment_t1 >> smooth_gm
 
-        get_brain_volumes = MatlabOperator(
-            task_id='get-brain-volumes',
-            matlab_function='brain_volumes',
-            matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
-            op_args=["{{ ti.xcom_pull(task_ids='t1.segment-t1-image', key='return_value2') }}"],
-            op_kwargs={
-                'subject': "{{ ti.xcom_pull(task_ids='init.get-subject-id') }}"
-            }
+    with TaskGroup(group_id='perfusion') as perfusion_tg:
+        asl_perfusion_processing = TriggerMultiDagRunOperator(
+            task_id='asl-perfusion',
+            trigger_dag_id='asl-perfusion-processing',
+            python_callable='',
+            wait_for_completion=True
         )
-        segment_t1 >> get_brain_volumes
-
-    with TaskGroup(group_id='asl') as asl_tg:
-        # dynamically create tasks based on number of asl sessions
-        asl_sessions = int(Variable.get("asl_sessions"))
-        mask_count = len(Variable.get("asl_roi_masks"))
-
-        build_afni_image = DockerBuildLocalImageOperator(
-            task_id='build-afni-image',
-            path="{{ var.value.afni_docker_image }}",
-            tag='asl/afni'
-        )
-        init_tg >> build_afni_image
-
-        build_fsl_image = DockerBuildLocalImageOperator(
-            task_id='build-fsl-image',
-            path="{{ var.value.fsl_docker_image }}",
-            tag='asl/fsl'
-        )
-        init_tg >> build_fsl_image
-
-        for session in range(0, asl_sessions):
-            with TaskGroup(group_id=f'asl-session-{session}') as asl_session_tg:
-                count_asl_images = BranchPythonOperator(
-                    task_id=f'count-asl-images-{session}',
-                    python_callable=_count_asl_images,
-                    op_kwargs={
-                        'path': f"{{ ti.xcom_pull(task_ids='init.get-asl-sessions', key='path{session}') }}",
-                        'success_task_id': f'afni-to3d-{session}'
-                    }
-                )
-                init_tg >> count_asl_images
-
-                afni_to3d = DockerTemplatedMountsOperator(
-                    task_id=f'afni-to3d-{session}',
-                    image='asl/afni',
-                    command=f"""/bin/bash -c \'{'; '.join(['dcmcount=$(ls {{ params.input }} | wc -l)',
-                                                           'nt=$(($dcmcount / 2))',
-                                                           'tr=1000',
-                                                           'file="zt_{{ params.subject }}_{{ params.session }}"',
-                                                           'to3d -prefix "$file" -fse -time:zt ${nt} 2 ${tr} seq+z "{{ params.input }}"/*',
-                                                           'echo "${file}.BRIK" | sed "s#.*/##"',
-                                                           'mv zt* -t "{{ params.outdir }}"'
-                                                           ]
-                                                          )}\'""",
-                    mounts=[
-                        {
-                            'target': '/in',
-                            'source': f"{{ ti.xcom_pull(task_ids='init.get-asl-sessions', key='path{session}') }}",
-                            'type': 'bind'
-                        },
-                        {
-                            'target': '/out',
-                            'source': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
-                            'type': 'bind'
-                        }
-                    ],
-                    params={
-                        'input': '/in',
-                        'outdir': '/out',
-                        'subject': 'test',
-                        'session': f'{session}'
-                    },
-                    auto_remove=True,
-                    do_xcom_push=True
-                )
-                [build_afni_image, count_asl_images] >> afni_to3d
-
-                pcasl = BashOperator(
-                    task_id=f'pcasl-{session}',
-                    # need to get the file created by to3d, strip all characters after `+`, feed that to 3df_pcasl, then get the
-                    # file that was created for xcom
-                    bash_command="""file={{ params.file }}; input=${file%+*}; 3df_pcasl -odata {{ params.path }}/${input} -nex 3; ls {{ params.path }}/*fmap*.BRIK | sed \'s#.*/##\'""",
-                    params={
-                        'file': f"{{ ti.xcom_pull(task_ids='afni-to3d-{session}') }}",
-                        'path': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}"
-                    },
-                    do_xcom_push=True
-                )
-
-                afni_3dcalc_fmap = DockerTemplatedMountsOperator(
-                    task_id=f'afni-3dcalc-fmap-{session}',
-                    image='asl/afni',
-                    command=f"""/bin/bash -c \'{'; '.join(['file={{ params.file }}',
-                                                           'stripped_ext=${file%.BRIK}',
-                                                           'stripped_prefix=${stripped_ext#zt_}',
-                                                           '3dcalc -a /data/${stripped_prefix}.[{{ params.map }}] -datum float -expr "a" -prefix ASL_${stripped_prefix}.nii',
-                                                           'mv "ASL_${stripped_prefix}.nii" -t /data',
-                                                           'echo "ASL_${stripped_prefix}.nii"'
-                                                           ]
-                                                          )}\'""",
-                    params={
-                        'file': f"{{ ti.xcom_pull(task_ids='pcasl-{session}') }}",
-                        'map': '0',
-                    },
-                    mounts=[
-                        {
-                            'target': '/data',
-                            'source': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
-                            'type': 'bind'
-                        }
-                    ]
-                )
-
-                afni_3dcalc_pdmap = DockerTemplatedMountsOperator(
-                    task_id=f'afni-3dcalc-pdmap-{session}',
-                    image='asl/afni',
-                    command=f"""/bin/bash -c \'{'; '.join(['file={{ ti.xcom_pull(task_ids="pcasl") }}',
-                                                           'stripped_ext=${file%.BRIK}',
-                                                           'stripped_prefix=${stripped_ext#zt_}',
-                                                           '3dcalc -a /data/${stripped_prefix}.[{{ params.map }}] -datum float -expr "a" -prefix ASL_${stripped_prefix}.nii',
-                                                           'mv "ASL_${stripped_prefix}.nii" -t /data',
-                                                           'echo "ASL_${stripped_prefix}.nii"'
-                                                           ]
-                                                          )}\'""",
-                    params={
-                        'map': '1',
-                    },
-                    mounts=[
-                        {
-                            'target': '/data',
-                            'source': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
-                            'type': 'bind'
-                        }
-                    ]
-                )
-                pcasl >> [afni_3dcalc_fmap, afni_3dcalc_pdmap]
-
-                coregister = MatlabOperator(
-                    task_id=f'coregister-{session}',
-                    matlab_function='coregister_asl.m',
-                    matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
-                    op_args=[
-                        "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}"
-                    ],
-                    op_kwargs={
-                        'ref': "",
-                        'nargout': '4'
-                    }
-                )
-                [smooth_gm, afni_3dcalc_fmap, afni_3dcalc_pdmap] >> coregister
-
-                # todo: change to matlab operator
-                normalize = DummyOperator(
-                    task_id=f'normalize-{session}'
-                )
-                coregister >> normalize
-
-                # todo: change to matlab operator
-                smooth_coregistered_image = DummyOperator(
-                    task_id=f'smooth-coregistered-image-{session}'
-                )
-                normalize >> smooth_coregistered_image
-
-                # todo: change to matlab operator
-                apply_icv_mask = DummyOperator(
-                    task_id=f'apply-icv-mask-{session}'
-                )
-                smooth_coregistered_image >> apply_icv_mask
-
-                # todo: change to matlab operator
-                create_perfusion_mask = DummyOperator(
-                    task_id=f'create-perfusion-mask-{session}'
-                )
-                apply_icv_mask >> create_perfusion_mask
-
-                # todo: change to matlab operator
-                get_global_perfusion = DummyOperator(
-                    task_id=f'get-global-perfusion-{session}'
-                )
-                create_perfusion_mask >> get_global_perfusion
-
-                with TaskGroup(group_id=f'roi-{session}') as roi_tg:
-                    for roi in range(0, 100):
-                        # todo: change to matlab operator
-                        inverse_warp_mask = DummyOperator(
-                            task_id=f'inverse-warp-mask-{session}-{roi}'
-                        )
-                        create_perfusion_mask >> inverse_warp_mask
-
-                        # todo: change to matlab operator
-                        restrict_gm_to_mask = DummyOperator(
-                            task_id=f'restrict-gm-to-mask-{session}-{roi}'
-                        )
-                        inverse_warp_mask >> restrict_gm_to_mask
-
-                        # todo: change to docker operator
-                        # todo: redirect stdout to .csv??
-                        get_roi_perfusion = DummyOperator(
-                            task_id=f'get-roi-perfusion-{session}-{roi}'
-                        )
-                        [build_fsl_image, restrict_gm_to_mask] >> get_roi_perfusion
-
-        with TaskGroup(group_id='aggregate-data') as aggregate_data_tg:
-            # todo: change to python operator todo: task should walk through each asl session (one task per session??)
-            #  aggregating all perfusion data (.csv) and form one .csv file
-            aggregate_perfusion_data = DummyOperator(
-                task_id='aggregate-perfusion-data',
-                trigger_rule=TriggerRule.ALL_DONE
-            )
-            [get_global_perfusion, get_roi_perfusion] >> aggregate_perfusion_data
-
-            # todo: make as csv2db operator
-            # todo: upload .csv file to staging table in database
-            asl_to_db = DummyOperator(
-                task_id='asl-to-db'
-            )
-            aggregate_perfusion_data >> asl_to_db
-
-    with TaskGroup(group_id='errors') as misc_tg:
-        # todo: change to python operator to log
-        missing_files = DummyOperator(
-            task_id='missing-files'
-        )
-        [count_asl_images] >> missing_files
+        smooth_gm >> asl_perfusion_processing
 
     with TaskGroup(group_id='cleanup') as cleanup_tg:
         remove_dcm2niix_image = DockerRemoveImage(
@@ -549,18 +297,18 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
             image='asl/afni',
             trigger_rule=TriggerRule.ALL_DONE
         )
-        [afni_3dcalc_fmap, afni_3dcalc_pdmap] >> remove_afni_image
+        asl_perfusion_processing >> remove_afni_image
 
         remove_fsl_image = DockerRemoveImage(
             task_id='remove-fsl-image',
             image='asl/fsl',
             trigger_rule=TriggerRule.ALL_DONE
         )
-        get_roi_perfusion >> remove_fsl_image
+        asl_perfusion_processing >> remove_fsl_image
 
         # todo: change to python operator
         remove_staged_files = DummyOperator(
             task_id='remove-staged-files',
             trigger_rule=TriggerRule.ALL_DONE
         )
-        asl_tg >> remove_staged_files
+        asl_perfusion_processing >> remove_staged_files
