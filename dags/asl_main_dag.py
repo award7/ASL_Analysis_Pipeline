@@ -267,72 +267,60 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         )
         build_dcm2niix_image >> dcm2niix
 
+        """ 
+        following segmentation, by default SPM creates a few files prefaced with `c` for each tissue segmentation, a `y`
+        file for the deformation field, and a `*seg8*.mat` file for tissue volume matrix
+        therefore, it's best to keep to the default naming convention by spm to ensure the pipeline stays intact
+        
+        the xcom keys from segment_t1.m are:
+        return_value0 = bias-corrected image (m*)
+        return_value1 = forward deformation image (y*)
+        return_value2 = segmentation parameters (*seg8.mat)
+        return_value3 = gray matter image (c1*)
+        return_value4 = white matter image (c2*)
+        return_value5 = csf image (c3*)
+        return_value6 = skull image (c4*)
+        return_value7 = soft tissue image (c5*)
+        
+        to get a specific image, ensure that the nargout parameter will encompass the index of the image. E.g. to get 
+        the csf image, nargout must be 6.
+        """
+
         segment_t1 = MatlabOperator(
             task_id='segment-t1-image',
             matlab_function='segment_t1',
             matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
             op_args=[
-                "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}/{{ ti.xcom_pull(task_ids='t1.dcm2niix') }}"
-            ]
+                "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}/{{ ti.xcom_pull(task_ids='t1.dcm2niix') }}",
+            ],
+            nargout=4
         )
         dcm2niix >> segment_t1
 
-        # following segmentation, by default SPM creates a few files prefaced with `c` for each tissue segmentation, a `y`
-        # file for the deformation field, and a `*seg8*.mat` file for tissue volume matrix
-        # therefore, it's best to keep to the default naming convention by spm to ensure the pipeline stays intact
-        get_gm_file = PythonOperator(
-            task_id='get-gm-file',
-            python_callable=_get_file,
-            op_kwargs={
-                'path': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
-                'search': "c1*"
-            }
-        )
-        segment_t1 >> get_gm_file
-
-        get_seg8mat_file = PythonOperator(
-            task_id='get-seg8mat-file',
-            python_callable=_get_file,
-            op_kwargs={
-                'path': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
-                'search': "*seg8.mat"
-            }
-        )
-        segment_t1 >> get_seg8mat_file
-
-        get_forward_deformation_file = PythonOperator(
-            task_id='get-forward_deformation-file',
-            python_callable=_get_file,
-            op_kwargs={
-                'path': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
-                'search': "y*"
-            }
-        )
-        segment_t1 >> get_forward_deformation_file
 
         smooth_gm = MatlabOperator(
             task_id='smooth',
             matlab_function='smooth_t1',
             matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
             op_args=[
-                "{{ ti.xcom_pull(task_ids='t1.get-gm-file') }}"
+                "{{ ti.xcom_pull(task_ids='t1.segment-t1-image', key='return_value3') }}"
             ],
             op_kwargs={
                 'fwhm': matlab.double([5, 5, 5])
             }
         )
-        get_gm_file >> smooth_gm
+        segment_t1 >> smooth_gm
 
         get_brain_volumes = MatlabOperator(
             task_id='get-brain-volumes',
             matlab_function='brain_volumes',
             matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
-            op_args=["{{ ti.xcom_pull(task_ids='t1.get-seg8mat-file') }}"],
+            op_args=["{{ ti.xcom_pull(task_ids='t1.segment-t1-image', key='return_value2') }}"],
             op_kwargs={
                 'subject': "{{ ti.xcom_pull(task_ids='init.get-subject-id') }}"
             }
         )
-        get_seg8mat_file >> get_brain_volumes
+        segment_t1 >> get_brain_volumes
 
     with TaskGroup(group_id='asl') as asl_tg:
         # dynamically create tasks based on number of asl sessions
@@ -453,7 +441,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                     mounts=[
                         {
                             'target': '/data',
-                            'source': "{{ var.value.asl_proc_path }}",
+                            'source': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
                             'type': 'bind'
                         }
                     ]
@@ -465,10 +453,11 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                     matlab_function='coregister_asl.m',
                     matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
                     op_args=[
-                        "{{ ti.xcom_pull(task_ids='') }}"
+                        "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}"
                     ],
                     op_kwargs={
-
+                        'ref': "",
+                        'nargout': '4'
                     }
                 )
                 [smooth_gm, afni_3dcalc_fmap, afni_3dcalc_pdmap] >> coregister

@@ -1,4 +1,6 @@
-function vargout = segment_t1(img, opts)
+function [bias_field_image, forward_deformation_image, ...
+    segmentation_parameters, gm_image, wm_image, csf_image, ...
+    skull_image, soft_tissue_image] = segment_t1(img, opts)
     % SEGMENT segment T1 image
     %
     % Requried arguments:
@@ -94,13 +96,13 @@ function vargout = segment_t1(img, opts)
     spm_jobman('run', matlabbatch);
     
     % return files
-    vargout{1} = find_files_for_python_engine(opts.outdir, 'c1*.nii');
-    vargout{1} = find_files_for_python_engine(opts.outdir, 'c2*.nii');
-    vargout{1} = find_files_for_python_engine(opts.outdir, 'c3*.nii');
-    vargout{1} = find_files_for_python_engine(opts.outdir, 'c4*.nii');
-    vargout{1} = find_files_for_python_engine(opts.outdir, 'c5*.nii');
-    vargout{1} = find_files_for_python_engine(opts.outdir, 'm*.nii');
-    vargout{1} = find_files_for_python_engine(opts.outdir, 'y*.nii');
-    vargout{1} = find_files_for_python_engine(opts.outdir, '*seg8.mat');
-    
+    bias_field_image = find_files_for_python_engine(opts.outdir, 'm*.nii');
+    forward_deformation_image = find_files_for_python_engine(opts.outdir, 'y*.nii');
+    segmentation_parameters = find_files_for_python_engine(opts.outdir, '*seg8.mat');
+    gm_image = find_files_for_python_engine(opts.outdir, 'c1*.nii');
+    wm_image = find_files_for_python_engine(opts.outdir, 'c2*.nii');
+    csf_image = find_files_for_python_engine(opts.outdir, 'c3*.nii');
+    skull_image = find_files_for_python_engine(opts.outdir, 'c4*.nii');
+    soft_tissue_image = find_files_for_python_engine(opts.outdir, 'c5*.nii');
+
 end
