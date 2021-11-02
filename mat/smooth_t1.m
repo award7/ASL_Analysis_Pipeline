@@ -1,4 +1,4 @@
-function smooth_t1(img, opts)
+function file = smooth_t1(img, opts)
     % SMOOTH Smooth MRI image
     %
     % Required arguments:
@@ -48,5 +48,8 @@ function smooth_t1(img, opts)
     end;
 
     spm_jobman('run', matlabbatch);
+
+    % return file
+    file = find_files_for_python_engine(opts.outdir, strcat(opts.prefix, '*'));
 
 end
