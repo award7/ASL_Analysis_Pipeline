@@ -1,26 +1,22 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator, BranchPythonOperator, ShortCircuitOperator
-from operators.docker_templated_mounts_operator import DockerTemplatedMountsOperator
 from operators.docker_remove_image import DockerRemoveImage
 from operators.docker_build_local_image_operator import DockerBuildLocalImageOperator
 from operators.trigger_multi_dagrun import TriggerMultiDagRunOperator
 from airflow.operators.dummy import DummyOperator
 from airflow.utils.task_group import TaskGroup
-from operators.matlab_operator import MatlabOperator
-from airflow.models import Variable
 from airflow.utils.trigger_rule import TriggerRule
 
-import logging
-from dicomsort.dicomsorter import DicomSorter
 from pydicom import read_file as dcm_read_file
+from pydicom.errors import InvalidDicomError
 from datetime import datetime
 import os
 from glob import glob
-import matlab
 from typing import Union, List
+import logging
 
 
-def _make_dir(*, path: Union[str, List[str]], **kwargs) -> None:
+def _make_dir(*, path: Union[str, List[str]], **kwargs) -> str:
     if isinstance(path, list):
         _path = ""
         for item in path:
@@ -55,6 +51,9 @@ def _get_t1_path(*, path: str, **kwargs) -> str:
         if not dirs and any(name in root for name in potential_t1_names):
             t1_paths.append(root)
 
+    if len(t1_paths) < 1:
+        raise FileNotFoundError(f"No directories matching a T1 session in {path}")
+
     # if there's more than one t1 directory found, get each scan's acquisition time and return the scan with the most
     # recent time stamp
     if len(t1_paths) > 1:
@@ -81,28 +80,57 @@ def _get_asl_sessions(*, path: str, **kwargs) -> list:
             yield{'session': root}
 
 
+def _count_asl_images(*, root_path: str, **kwargs) -> str:
+    """
+
+    :param path:
+    :param success_task_id:
+    :param kwargs:
+    :return:
+    """
+
+    sessions = _get_asl_sessions(path=root_path)
+    bad_sessions = []
+    for path in sessions:
+        files_in_folder = os.listdir(path)
+        dcm = dcm_read_file(files_in_folder[0])
+        images_in_acquisition = getattr(dcm, 'ImagesInAcquisition')
+        file_count = len(files_in_folder)
+
+        if file_count < images_in_acquisition:
+            bad_sessions.append(path)
+
+    if len(bad_sessions) > 1:
+        ti = kwargs['ti']
+        for idx, session in enumerate(bad_sessions):
+            ti.xcom_push(key=f"bad_asl_session{idx}", value=session)
+        return 'notify-bad-sessions'
+    return 'make-proc-path'
+
+
 def _get_study_date(*, path: str, **kwargs) -> str:
     file = os.listdir(path)[0]
     dcm = dcm_read_file(file)
     return getattr(dcm, 'AcquisitionDate')
 
 
-def _get_protocol_name(*, path: str, **kwargs) -> str:
+def _get_protocol_name(*, path: str, **kwargs) -> None:
     file = os.listdir(path)[0]
     dcm = dcm_read_file(file)
     return getattr(dcm, 'ProtocolName')
 
 
-def _count_t1_images(*, path: str, **kwargs) -> str:
+def _count_t1_images(*, path: str, **kwargs) -> None:
     files_in_folder = os.listdir(path)
     dcm = dcm_read_file(os.path.join(path, files_in_folder[0]))
     images_in_acquisition = getattr(dcm, 'ImagesInAcquisition')
     file_count = len(files_in_folder)
 
-    if file_count < images_in_acquisition:
-        return 't1.reslice-t1'
-    else:
-        return 't1.build-dcm2niix-image'
+    try:
+        assert file_count == images_in_acquisition
+    except AssertionError:
+        raise ValueError(f"Insufficient T1 images in {path}. Images in acquisition is {images_in_acquisition} but only"
+                         f"{file_count} were found.")
 
 
 def _get_subject_id(*, path: str, **kwargs) -> str:
@@ -113,7 +141,43 @@ def _get_subject_id(*, path: str, **kwargs) -> str:
 
 
 def _check_for_scans(*, path: str, **kwargs) -> bool:
+    # check for any folders in /bucket/asl/raw and if any are found, check the contents for t1 scan, asl scan(s), and
+    # dicom images, in order
+    # fail at any check so the pipeline is skipped
     if os.listdir(path):
+        try:
+            t1_path = _get_t1_path(path=path)
+        except FileNotFoundError:
+            return False
+
+        try:
+            asl_sessions = _get_asl_sessions(path=path)
+            asl_lst = []
+            for session in asl_sessions:
+                asl_lst.append(session)
+            assert len(asl_lst) > 1
+        except FileNotFoundError or AssertionError:
+            return False
+
+        try:
+            t1_contents = os.listdir(t1_path)
+            assert len(t1_contents) > 1
+            dcm_read_file(t1_contents[0])
+        except InvalidDicomError:
+            logging.error(f"No DICOM files were found in {path}. Ensure DicomSort finished and that no other files "
+                          f"exist in this directory.")
+            return False
+
+        try:
+            for session in asl_lst:
+                contents = os.listdir(session)
+                assert len(contents) > 1
+                dcm_read_file(contents[0])
+        except InvalidDicomError or AssertionError:
+            return False
+
+        ti = kwargs['ti']
+        ti.xcom_push(key="t1_path", value=t1_path)
         return True
 
 
@@ -129,12 +193,27 @@ def _get_file(*, path: str, search: str, **kwargs) -> str:
 # todo: rename DAG after testing
 with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8, 1), catchup=False) as dag:
     with TaskGroup(group_id='init') as init_tg:
-        dicom_sort = PythonOperator(
-            task_id='dicom-sort',
-            python_callable=DicomSorter,
+        check_for_scans = ShortCircuitOperator(
+            task_id='check-for-scans',
+            python_callable=_check_for_scans,
             op_kwargs={
-                'source': "{{ var.value.disk_drive }}",
-                'target': "{{ ti.xcom_pull(task_ids='init.make-raw-staging-path') }}"
+                'path': "{{ var.value.asl_raw_path }}"
+            }
+        )
+
+        count_t1_images = BranchPythonOperator(
+            task_id='count-t1-images',
+            python_callable=_count_t1_images,
+            op_kwargs={
+                'path': "{{ ti.xcom_pull(task_ids='init.get-t1-path') }}"
+            }
+        )
+
+        count_asl_images = BranchPythonOperator(
+            task_id='count-asl-images',
+            python_callable=_count_asl_images,
+            op_kwargs={
+                'root_path': "{{ var.value.asl_raw_path }}"
             }
         )
 
@@ -145,7 +224,6 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                 'path': "{{ var.value.disk_drive }}"
             }
         )
-        dicom_sort >> get_subject_id
 
         # this is where analyzed files (.nii, .BRIK, etc.) will be stored
         make_proc_path = PythonOperator(
@@ -158,122 +236,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                 ]
             }
         )
-        dicom_sort >> make_proc_path
 
-        get_t1_path = PythonOperator(
-            task_id='get-t1-path',
-            python_callable=_get_t1_path,
-            op_kwargs={
-                'path': "{{ var.value.asl_raw_path }}"
-            }
-        )
-        dicom_sort >> get_t1_path
-
-        count_t1_images = BranchPythonOperator(
-            task_id='count-t1-images',
-            python_callable=_count_t1_images,
-            op_kwargs={
-                'path': "{{ ti.xcom_pull(task_ids='init.get-t1-path') }}"
-            }
-        )
-        get_t1_path >> count_t1_images
-
-    with TaskGroup(group_id='t1') as t1_tg:
-        # todo: build a reslice command in one of the MRI programs...
-        reslice_t1 = DummyOperator(
-            task_id='reslice-t1',
-        )
-        count_t1_images >> reslice_t1
-
-        build_dcm2niix_image = DockerBuildLocalImageOperator(
-            task_id='build-dcm2niix-image',
-            path="{{ var.value.dcm2niix_docker_image }}",
-            tag="asl/dcm2niix",
-            trigger_rule=TriggerRule.NONE_FAILED
-        )
-        [count_t1_images, reslice_t1] >> build_dcm2niix_image
-
-        dcm2niix = DockerTemplatedMountsOperator(
-            task_id='dcm2niix',
-            image='asl/dcm2niix',
-            # this command calls a bash shell ->
-            # calls dcm2niix program (filename being protocol_name_timestamp) and outputs to the /tmp directory on the
-            #     container ->
-            # find the .nii file that was created and save the name to a variable ->
-            # move the created files from /tmp to the mounted directory /out ->
-            # clear the stdout ->
-            # echo the filename to stdout so it will be returned as the xcom value
-            command="""/bin/sh -c \'dcm2niix -f %p_%n_%t -o /tmp /in; clear; file=$(find ./tmp -name "*.nii" -type f); mv /tmp/* /out; clear; echo "${file##*/}"\'""",
-            mounts=[
-                {
-                    'target': '/in',
-                    'source': "{{ ti.xcom_pull(task_ids='init.get-t1-path') }}",
-                    'type': 'bind'
-                },
-                {
-                    'target': '/out',
-                    'source': "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}",
-                    'type': 'bind'
-                },
-            ],
-            auto_remove=True,
-            do_xcom_push=True
-        )
-        build_dcm2niix_image >> dcm2niix
-
-        """ 
-        following segmentation, by default SPM creates a few files prefaced with `c` for each tissue segmentation, a `y`
-        file for the deformation field, and a `*seg8*.mat` file for tissue volume matrix
-        therefore, it's best to keep to the default naming convention by spm to ensure the pipeline stays intact
-        
-        the xcom keys from segment_t1.m are:
-        return_value0 = bias-corrected image (m*)
-        return_value1 = forward deformation image (y*)
-        return_value2 = segmentation parameters (*seg8.mat)
-        return_value3 = gray matter image (c1*)
-        return_value4 = white matter image (c2*)
-        return_value5 = csf image (c3*)
-        return_value6 = skull image (c4*)
-        return_value7 = soft tissue image (c5*)
-        
-        to get a specific image, ensure that the nargout parameter will encompass the index of the image. E.g. to get 
-        the csf image, nargout must be 6.
-        """
-
-        segment_t1 = MatlabOperator(
-            task_id='segment-t1-image',
-            matlab_function='segment_t1',
-            matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
-            op_args=[
-                "{{ ti.xcom_pull(task_ids='init.make-proc-path') }}/{{ ti.xcom_pull(task_ids='t1.dcm2niix') }}",
-            ],
-            nargout=4
-        )
-        dcm2niix >> segment_t1
-
-        get_brain_volumes = MatlabOperator(
-            task_id='get-brain-volumes',
-            matlab_function='brain_volumes',
-            matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
-            op_args=["{{ ti.xcom_pull(task_ids='t1.segment-t1-image', key='return_value2') }}"],
-            op_kwargs={
-                'subject': "{{ ti.xcom_pull(task_ids='init.get-subject-id') }}"
-            }
-        )
-        segment_t1 >> get_brain_volumes
-
-        smooth_gm = MatlabOperator(
-            task_id='smooth',
-            matlab_function='smooth_t1',
-            matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
-            op_args=[
-                "{{ ti.xcom_pull(task_ids='t1.segment-t1-image', key='return_value3') }}"
-            ],
-            op_kwargs={
-                'fwhm': matlab.double([5, 5, 5])
-            }
-        )
-        segment_t1 >> smooth_gm
 
     with TaskGroup(group_id='perfusion') as perfusion_tg:
         asl_perfusion_processing = TriggerMultiDagRunOperator(
