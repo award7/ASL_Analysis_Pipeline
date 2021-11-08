@@ -5,9 +5,33 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="prepping for airflow">
-      <change afterPath="$PROJECT_DIR$/dags/asl_t1_processing_dag.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dags/asl_main_dag.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/asl_main_dag.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/asl_utils/bind_volumes.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asl_utils/condense_id.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asl_utils/dcm_sort.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asl_utils/image_builder.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asl_utils/image_checker.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asl_utils/images.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/utils/images.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/asl_utils/mat_scripts.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asl_utils/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/asl_utils/validation.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_dcm2niix_container.bash" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/aslpproc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/errHandler.bash" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/help.bash" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/imagesort.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pipeline.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/preprocess.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/runConfirmation.bash" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/runDCMext.bash" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/runDcm2nii.bash" beforeDir="false" afterPath="$PROJECT_DIR$/shell/runDcm2nii.bash" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/runError.bash" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/runFSL.bash" beforeDir="false" afterPath="$PROJECT_DIR$/shell/runFSL.bash" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/runFmapMake.bash" beforeDir="false" afterPath="$PROJECT_DIR$/shell/runFmapMake.bash" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/runPproc.bash" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/space2under.bash" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test.bash" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/usage.bash" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,7 +48,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="dev" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -54,7 +78,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$USER_HOME$/repos" />
+    <property name="last_opened_file_path" value="$USER_HOME$/repos/dicomsort" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -171,7 +195,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="pytest for utils.validation" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+    <configuration name="pytest for utils" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
       <module name="ASL_Analysis_Pipeline" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -184,7 +208,7 @@
       <option name="_new_keywords" value="&quot;&quot;" />
       <option name="_new_parameters" value="&quot;&quot;" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;utils.validation&quot;" />
+      <option name="_new_target" value="&quot;utils&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
@@ -251,6 +275,8 @@
       <workItem from="1635528227198" duration="14000" />
       <workItem from="1635528292976" duration="1035000" />
       <workItem from="1636059372523" duration="4524000" />
+      <workItem from="1636408091559" duration="20000" />
+      <workItem from="1636408302101" duration="4297000" />
     </task>
     <task id="LOCAL-00001" summary="added more processing steps">
       <created>1621881552444</created>
