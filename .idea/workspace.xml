@@ -4,9 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="cleaning up unnecessary files for airflow">
+    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="moved helper functions to utils/utils.py">
+      <change afterPath="$PROJECT_DIR$/.idea/webResources.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ASL_Analysis_Pipeline.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ASL_Analysis_Pipeline.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dags/asl_main_dag.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/asl_main_dag.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dags/asl_perfusion_processing_dag.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/asl_perfusion_processing_dag.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dags/asl_t1_processing_dag.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/asl_t1_processing_dag.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -53,8 +57,9 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$USER_HOME$/repos/dicomsort" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../plugins" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -194,7 +199,6 @@
         <item itemvalue="Python.asl_main_dag" />
         <item itemvalue="Python.tmp" />
         <item itemvalue="Python.email_test" />
-        <item itemvalue="Python tests.pytest for utils.validation" />
         <item itemvalue="Python.sandbox" />
       </list>
     </recent_temporary>
@@ -253,7 +257,8 @@
       <workItem from="1635528292976" duration="1035000" />
       <workItem from="1636059372523" duration="4524000" />
       <workItem from="1636408091559" duration="20000" />
-      <workItem from="1636408302101" duration="7852000" />
+      <workItem from="1636408302101" duration="9659000" />
+      <workItem from="1636421044504" duration="1794000" />
     </task>
     <task id="LOCAL-00001" summary="added more processing steps">
       <created>1621881552444</created>
@@ -465,7 +470,14 @@
       <option name="project" value="LOCAL" />
       <updated>1636415707415</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="moved helper functions to utils/utils.py">
+      <created>1636419467856</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1636419467856</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -484,7 +496,6 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="un-nested mask directory" />
     <MESSAGE value="added _check_for_scans function; may utilize as sensor" />
     <MESSAGE value="fixed _get_subject_id" />
     <MESSAGE value="fixed _get_asl_sessions" />
@@ -509,7 +520,8 @@
     <MESSAGE value="fixed templating for dynamic sessions, proc location" />
     <MESSAGE value="prepping for airflow" />
     <MESSAGE value="cleaning up unnecessary files for airflow" />
-    <option name="LAST_COMMIT_MESSAGE" value="cleaning up unnecessary files for airflow" />
+    <MESSAGE value="moved helper functions to utils/utils.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="moved helper functions to utils/utils.py" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
