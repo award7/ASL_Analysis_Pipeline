@@ -4,34 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="prepping for airflow">
+    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="cleaning up unnecessary files for airflow">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/asl_utils/bind_volumes.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/asl_utils/condense_id.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/asl_utils/dcm_sort.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/asl_utils/image_builder.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/asl_utils/image_checker.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/asl_utils/images.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/utils/images.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/asl_utils/mat_scripts.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/asl_utils/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/asl_utils/validation.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_dcm2niix_container.bash" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/aslpproc.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/errHandler.bash" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/help.bash" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/imagesort.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pipeline.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/preprocess.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/runConfirmation.bash" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/runDCMext.bash" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/runDcm2nii.bash" beforeDir="false" afterPath="$PROJECT_DIR$/shell/runDcm2nii.bash" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/runError.bash" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/runFSL.bash" beforeDir="false" afterPath="$PROJECT_DIR$/shell/runFSL.bash" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/runFmapMake.bash" beforeDir="false" afterPath="$PROJECT_DIR$/shell/runFmapMake.bash" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/runPproc.bash" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/space2under.bash" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test.bash" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/usage.bash" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dags/asl_main_dag.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/asl_main_dag.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -95,6 +71,7 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/shell" />
       <recent name="C:\Users\atward\Box\Data_Analysis_Transforms\asl\ASL_Analysis_Pipeline\src" />
       <recent name="C:\Users\Schragelab\Box\Data_Analysis_Transforms\asl\ASL_Analysis_Pipeline\utils" />
     </key>
@@ -276,7 +253,7 @@
       <workItem from="1635528292976" duration="1035000" />
       <workItem from="1636059372523" duration="4524000" />
       <workItem from="1636408091559" duration="20000" />
-      <workItem from="1636408302101" duration="4297000" />
+      <workItem from="1636408302101" duration="7852000" />
     </task>
     <task id="LOCAL-00001" summary="added more processing steps">
       <created>1621881552444</created>
@@ -481,7 +458,14 @@
       <option name="project" value="LOCAL" />
       <updated>1635802037447</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="cleaning up unnecessary files for airflow">
+      <created>1636415707415</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1636415707415</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -500,8 +484,6 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="added dynamic task generation for masking" />
-    <MESSAGE value="update matlab functions" />
     <MESSAGE value="un-nested mask directory" />
     <MESSAGE value="added _check_for_scans function; may utilize as sensor" />
     <MESSAGE value="fixed _get_subject_id" />
@@ -525,7 +507,9 @@
     <MESSAGE value="made generic _make_dir and allow list as input for path building" />
     <MESSAGE value="tasks for creating raw and proc directories" />
     <MESSAGE value="fixed templating for dynamic sessions, proc location" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed templating for dynamic sessions, proc location" />
+    <MESSAGE value="prepping for airflow" />
+    <MESSAGE value="cleaning up unnecessary files for airflow" />
+    <option name="LAST_COMMIT_MESSAGE" value="cleaning up unnecessary files for airflow" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

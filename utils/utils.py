@@ -1,100 +1,204 @@
 import os
 from glob import glob
-
+from pydicom import read_file as dcm_read_file
+from typing import Union, List
+import logging
+from pydicom.errors import InvalidDicomError
 
 """functions to be used in conjunction with asl* dags"""
 
 
-def count_t1_images(folder: str, count: int) -> str:
+def get_dicom_field(*, path: str, field: str, **kwargs) -> str:
+    file = os.listdir(path)[0]
+    dcm = dcm_read_file(file)
+    return getattr(dcm, field)
+
+
+def check_for_scans(*, path: str, **kwargs) -> bool:
+    # check for any folders in /bucket/asl/raw and if any are found, check the contents for t1 scan, asl scan(s), and
+    # dicom images, in order
+    # fail at any check so the pipeline is skipped
+    if os.listdir(path):
+        try:
+            t1_path = _get_t1_path(path=path)
+        except FileNotFoundError:
+            return False
+
+        try:
+            asl_sessions = get_asl_sessions(path=path)
+            asl_lst = []
+            for session in asl_sessions:
+                asl_lst.append(session)
+            assert len(asl_lst) > 1
+        except FileNotFoundError or AssertionError:
+            return False
+
+        try:
+            t1_contents = os.listdir(t1_path)
+            assert len(t1_contents) > 1
+            dcm_read_file(t1_contents[0])
+        except InvalidDicomError:
+            logging.error(f"No DICOM files were found in {path}. Ensure DicomSort finished and that no other files "
+                          f"exist in this directory.")
+            return False
+
+        try:
+            for session in asl_lst:
+                contents = os.listdir(session)
+                assert len(contents) > 1
+                dcm_read_file(contents[0])
+        except InvalidDicomError or AssertionError:
+            return False
+
+        ti = kwargs['ti']
+        ti.xcom_push(key="t1_path", value=t1_path)
+        return True
+
+
+def count_t1_images(*, path: str, **kwargs) -> None:
     """
-    Count the number of raw T1 images. If the number is below a threshold, then reslice; otherwise, continue
-    :param folder: absolute path to raw T1 files
-    :type folder: str
-    :param count: number of expected raw T1 files
-    :type count: int
-    :return: next task_id in the pipeline
-    :rtype: str
+    Count the number of raw T1 images. If the number is below a threshold then raise error; otherwise, continue.
+
+    :param path: absolute path to raw T1 files
+    :type path: str
+    :return None
+    """
+    t1_path = _get_t1_path(path=path, **kwargs)
+
+    files_in_folder = os.listdir(t1_path)
+    dcm = dcm_read_file(os.path.join(t1_path, files_in_folder[0]))
+    images_in_acquisition = getattr(dcm, 'ImagesInAcquisition')
+    file_count = len(files_in_folder)
+
+    try:
+        assert file_count == images_in_acquisition
+    except AssertionError:
+        raise ValueError(f"Insufficient T1 images in {t1_path}. Images in acquisition is {images_in_acquisition} but "
+                         f"only {file_count} were found.")
+
+
+def count_asl_images(*, root_path: str, **kwargs) -> None:
     """
 
-    file_count = len(os.listdir(folder))
-    if file_count < count:
-        return 'reslice-t1'
-    return 'dcm2niix'
+    :param root_path: absolute path to recursively search for asl files.
+    :type root_path: str
+    :return: None
+    """
+
+    sessions = get_asl_sessions(path=root_path)
+    bad_sessions = {}
+    for idx, path in enumerate(sessions):
+        files_in_folder = os.listdir(path)
+        dcm = dcm_read_file(files_in_folder[0])
+        images_in_acquisition = getattr(dcm, 'ImagesInAcquisition')
+        file_count = len(files_in_folder)
+
+        if file_count < images_in_acquisition:
+            bad_sessions[f'session{idx}'] = [path, file_count, images_in_acquisition]
+
+    if len(bad_sessions) > 1:
+        error_string = ""
+        for key, val in bad_sessions.items():
+            error_string = f"{error_string}" \
+                           f"Insufficient ASL images in {bad_sessions[key][0]}. Images in acquisition is " \
+                           f"{bad_sessions[key][2]} but only {bad_sessions[key][1]} were found. " \
+                           f"{os.linesep}"
+        ti = kwargs['ti']
+        ti.xcom_push(value=[path[0] for path in bad_sessions.values()])
+        raise ValueError(error_string)
 
 
-def get_file(file_name: str, path: str) -> str:
+def get_file(*, path: str, search: str, **kwargs) -> str:
     """
     Get file using glob and push actual file name to xcom with the associated key
-    :param file_name: file name to search for. Can be exact or with wildcards
-    :type file_name: str
+
     :param path: absolute path to search for `file_name`
     :type path: str
+    :param search: file name to search for. Can be exact or with wildcards
+    :type search: str
     :return: file name found that is pushed to xcom
     :rtype: str
     """
 
-    files = glob(os.path.join(path, file_name))
+    files = glob(os.path.join(path, search))
     if len(files) < 1:
-        FileExistsError(f"No files found in {path} that match the search term {file_name}")
+        FileExistsError(f"No files found in {path} that match the search term {search}")
     if len(files) > 1:
-        FileExistsError(f"Multiple files found in {path} that match the search term {file_name}:\n"
+        FileExistsError(f"Multiple files found in {path} that match the search term {search}:\n"
                         f"{files}")
     return files[0]
 
 
-def move_file(ti, source_directory: str, target_directory: str, task_id: str, xcom_key: str = 'value') -> None:
+def make_dir(*, path: Union[str, List[str]], **kwargs) -> str:
+    if isinstance(path, list):
+        _path = ""
+        for item in path:
+            _path = os.path.join(_path, item)
+        path = _path
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
+def get_asl_sessions(*, path: str, exclude: list = None, **kwargs) -> list:
     """
-    Move file(s) to target directory
-    :param ti: task instance object
-    :param source_directory: source directory where file is currently stored
-    :type source_directory: str
-    :param target_directory: target directory to move the file to
-    :type target_directory: str
-    :param task_id: task_id from which to perform xcom_pull
-    :type task_id: str
-    :param xcom_key: xcom key associated with file and task_id
-    :type xcom_key: str
-    :return: None
+    find asl folders to trigger multiple asl-perfusion-processing dags
+    :param path: is the target path for the dicom sorting
+    :type path: str
+    :param exclude: any paths to exclude
+    :type exclude: list
     """
 
-    file = ti.xcom_pull(task_ids=[task_id], key=xcom_key)
-    os.replace(os.path.join(source_directory, file), os.path.join(target_directory, file))
+    potential_asl_names = _asl_scan_names()
 
-
-def make_dir(path: str, directory: str) -> None:
-    os.makedirs(os.path.join(path, directory), exist_ok=True)
-
-
-def count_asl_images(folder: str, count: int):
-    file_count = len(os.listdir(folder))
-    if file_count < count:
-        return 'not-enough-asl-dcm'
-    return 'run-downstream-asl-processing'
-
-
-def get_asl_sessions(ti, folder: str):
-    """
-    Count the number of ASL sessions (i.e. scans) and push the session name to xcom
-    :param ti: task instance object
-    :param folder: absolute path to parent directory housing child ASL session folders
-    :return: None
-    """
-    sessions = glob(os.path.join(folder, 'asl*'))
-    for session in sessions:
-        ti.xcom_push(key='session', value=session)
-
-
-def create_asl_downstream_dag(ti):
-    """
-    Create downstream asl_downstream DAG(s) based on the number of ASL sessions
-    :param ti: task instance object
-    :return: generator containing key-value pairs for DAGs
-    """
-    sessions = ti.xcom_pull(task_ids=['get-asl-sessions'], key='session')
-    for session in sessions:
-        yield {'session': session}
+    # get lowest directories to search for asl directories
+    for root, dirs, files in os.walk(path):
+        if not dirs and any(name in root for name in potential_asl_names):
+            if root is not None and root in exclude:
+                continue
+            yield {'session': root}
 
 
 def get_docker_url() -> str:
     return "unix://var/run/docker.sock"
+
+
+def _t1_scan_names() -> list:
+    # include all variations of the T1 scan name between studies
+    return [
+        'Ax_T1_Bravo_3mm',
+        'mADNI3_T1'
+    ]
+
+
+def _asl_scan_names() -> list:
+    # include all variations of the asl scan name between studies
+    return [
+        'UW_eASL',
+        '3D_ASL'
+    ]
+
+
+def _get_t1_path(*, path: str, **kwargs) -> str:
+    potential_t1_names = _t1_scan_names()
+
+    # get lowest directories to search for t1 directories
+    t1_paths = []
+    for root, dirs, files in os.walk(path):
+        if not dirs and any(name in root for name in potential_t1_names):
+            t1_paths.append(root)
+
+    if len(t1_paths) < 1:
+        raise FileNotFoundError(f"No directories matching a T1 session in {path}")
+
+    # if there's more than one t1 directory found, get each scan's acquisition time and return the scan with the most
+    # recent time stamp
+    if len(t1_paths) > 1:
+        d = {}
+        for path in t1_paths:
+            dcm = dcm_read_file(os.listdir(path)[0])
+            d[path] = getattr(dcm, 'AcquisitionTime')
+
+        sorted_d = {k: v for k, v in sorted(d.items(), key=lambda item: item[1])}
+        t1_paths = next(iter(sorted_d))
+    return t1_paths[0]
 
