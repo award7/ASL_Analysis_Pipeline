@@ -4,6 +4,7 @@ from pydicom import read_file as dcm_read_file
 from typing import Union, List
 import logging
 from pydicom.errors import InvalidDicomError
+from shutil import rmtree
 
 """functions to be used in conjunction with asl* dags"""
 
@@ -55,7 +56,7 @@ def check_for_scans(*, path: str, **kwargs) -> bool:
         return True
 
 
-def count_t1_images(*, path: str, **kwargs) -> None:
+def count_t1_images(*, path: str, **kwargs) -> str:
     """
     Count the number of raw T1 images. If the number is below a threshold then raise error; otherwise, continue.
 
@@ -72,6 +73,7 @@ def count_t1_images(*, path: str, **kwargs) -> None:
 
     try:
         assert file_count == images_in_acquisition
+        return t1_path
     except AssertionError:
         raise ValueError(f"Insufficient T1 images in {t1_path}. Images in acquisition is {images_in_acquisition} but "
                          f"only {file_count} were found.")
@@ -160,6 +162,23 @@ def get_asl_sessions(*, path: str, exclude: list = None, **kwargs) -> list:
 
 def get_docker_url() -> str:
     return "unix://var/run/docker.sock"
+
+
+def rm_files(*, path: str, **kwargs) -> None:
+    """
+    remove folders and/or files from path
+
+    :param path: absolute path to folders/files to delete
+    :type path: str
+    :param kwargs: keyword args for airflow conf
+    :return: None
+    """
+    rmtree(path)
+
+
+def package_xcom_to_conf(*, mapping: dict, **kwargs) -> None:
+    for key, val in mapping.items():
+        kwargs['dag_run'].conf[key] = val
 
 
 def _t1_scan_names() -> list:
