@@ -45,7 +45,7 @@ function file = smooth_t1(img, opts)
     if ~strcmp(opts.outdir, source_path)
         matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.files(1) = cfg_dep('Smooth: Smoothed Images', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
         matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveto = {char(opts.outdir)};
-    end;
+    end
 
     spm_jobman('run', matlabbatch);
 
