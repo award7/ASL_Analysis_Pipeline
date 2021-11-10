@@ -37,7 +37,7 @@ function file = coregister_asl(ref, src, opts)
     end
     
     if ~isempty(opts.other)
-        mustBeFile(opts.file);
+        mustBeFile(opts.other);
     end
     
     if isempty(opts.outdir)
@@ -65,7 +65,7 @@ function file = coregister_asl(ref, src, opts)
     matlabbatch{1}.spm.spatial.coreg.estwrite.rmask = 0;
     matlabbatch{1}.spm.spatial.coreg.estwrite.rprefix = opts.prefix;
 
-    [source_path, ~, ~] = fileparts(img);
+    [source_path, ~, ~] = fileparts(src);
     if ~strcmp(opts.outdir, source_path)
         matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.files(1) = cfg_dep('Coregister: Estimate & Reslice: Coregistered Images', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','cfiles'));
         matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.files(2) = cfg_dep('Coregister: Estimate & Reslice: Resliced Images', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','rfiles'));
