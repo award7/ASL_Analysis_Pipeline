@@ -19,7 +19,6 @@ function newFile = brain_volumes(seg8mat, opts)
     % set default values for optional arguments
     arguments
         seg8mat {mustBeFile};
-        % TODO: set the file path
         opts.mask {mustBeFile} = '/usr/local/MATLAB/R2021a/spm12/tpm/mask_ICV.nii';
         opts.prefix {mustBeTextScalar} = 'seg_volumes_t1';
         opts.outdir {mustBeTextScalar} = '';
@@ -54,5 +53,5 @@ function newFile = brain_volumes(seg8mat, opts)
     % custom IO
     % this method auto saves it to the pwd, so need to move it to the target dir
     newFile = fullfile(opts.outdir, strcat(opts.prefix, '_', opts.subject, '.csv'));
-    movefile('vol.csv', newFile);
+    movefile('vol.csv', newFile, 'f');
 end
