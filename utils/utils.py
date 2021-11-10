@@ -16,43 +16,8 @@ def get_dicom_field(*, path: str, field: str, **kwargs) -> str:
 
 
 def check_for_scans(*, path: str, **kwargs) -> bool:
-    # check for any folders in /bucket/asl/raw and if any are found, check the contents for t1 scan, asl scan(s), and
-    # dicom images, in order
-    # fail at any check so the pipeline is skipped
+    # check for any folders in /bucket/asl/raw
     if os.listdir(path):
-        try:
-            t1_path = _get_t1_path(path=path)
-        except FileNotFoundError:
-            return False
-
-        try:
-            asl_sessions = get_asl_sessions(path=path)
-            asl_lst = []
-            for session in asl_sessions:
-                asl_lst.append(session)
-            assert len(asl_lst) > 1
-        except FileNotFoundError or AssertionError:
-            return False
-
-        try:
-            t1_contents = os.listdir(t1_path)
-            assert len(t1_contents) > 1
-            dcm_read_file(t1_contents[0])
-        except InvalidDicomError:
-            logging.error(f"No DICOM files were found in {path}. Ensure DicomSort finished and that no other files "
-                          f"exist in this directory.")
-            return False
-
-        try:
-            for session in asl_lst:
-                contents = os.listdir(session)
-                assert len(contents) > 1
-                dcm_read_file(contents[0])
-        except InvalidDicomError or AssertionError:
-            return False
-
-        ti = kwargs['ti']
-        ti.xcom_push(key="t1_path", value=t1_path)
         return True
 
 
