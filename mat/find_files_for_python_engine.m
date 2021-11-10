@@ -3,6 +3,10 @@ function file = find_files_for_python_engine(path, search)
     % engine as it cannot handle structs or cell arrays.
     % can be expanded to return a delimited string and then parse in python
     files = dir(fullfile(path, search));
+    if length(files) < 1
+        warning('No files found in %s for the given search term %s', path, search);
+        return
+    end
     if length(files) > 1
         warning('Many files found in %s for the given search term %s\nSending files back as a comma-delimited string.', path, search);
         file = '';
