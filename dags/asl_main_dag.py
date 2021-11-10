@@ -5,13 +5,15 @@ from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.utils.task_group import TaskGroup
 from airflow.utils.trigger_rule import TriggerRule
 from operators.trigger_multi_dagrun import TriggerMultiDagRunOperator
-from operators.custom_docker_operator import (
-    DockerBuildLocalImageOperator,
-    DockerRemoveImage
-)
+from operators.docker_build_local_image_operator import DockerBuildLocalImageOperator
+from operators.docker_remove_image import DockerRemoveImage
+# from operators.custom_docker_operator import (
+#     DockerBuildLocalImageOperator,
+#     DockerRemoveImage
+# )
 
 from datetime import datetime
-from utils import (
+from utils.utils import (
     get_asl_sessions,
     get_dicom_field,
     check_for_scans,
@@ -24,8 +26,9 @@ from utils import (
 
 # todo: set default args dict
 # todo: rename DAG after testing
-with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8, 1), catchup=False) as dag:
+with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1), catchup=False) as dag:
     with TaskGroup(group_id='init') as init_tg:
+        # todo: put this in its own DAG which will essentially act as a trigger for this DAG
         _check_for_scans = ShortCircuitOperator(
             task_id='check-for-scans',
             python_callable=check_for_scans,
@@ -41,6 +44,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                 'path': "{{ var.value.asl_raw_path }}"
             }
         )
+        _check_for_scans >> _count_t1_images
 
         _count_asl_images = PythonOperator(
             task_id='count-asl-images',
@@ -49,6 +53,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                 'root_path': "{{ var.value.asl_raw_path }}"
             }
         )
+        _count_t1_images >> _count_asl_images
 
         get_protocol_name = PythonOperator(
             task_id='get-protocol-name',
@@ -58,6 +63,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                 'field': 'ProtocolName'
             }
         )
+        _count_asl_images >> get_protocol_name
 
         get_subject_id = PythonOperator(
             task_id='get-subject-id',
@@ -67,6 +73,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
                 'field': 'PatientName'
             }
         )
+        _count_asl_images >> get_subject_id
 
         # this is where analyzed files (.nii, .BRIK, etc.) will be stored
         _make_proc_path = PythonOperator(
@@ -125,7 +132,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
             trigger_dag_id='t1-processing',
             wait_for_completion=True
         )
-        [build_dcm2niix_image, package_xcom_to_conf] >> t1_processing
+        [build_dcm2niix_image, package_variables_for_dags] >> t1_processing
 
     with TaskGroup(group_id='perfusion-processing') as perfusion_tg:
         asl_perfusion_processing = DummyOperator(task_id='asl-processing')
@@ -139,7 +146,7 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         #     },
         #     wait_for_completion=True
         # )
-        # [t1_processing, build_afni_image, build_fsl_image] >> asl_perfusion_processing
+        [t1_processing, build_afni_image, build_fsl_image] >> asl_perfusion_processing
 
     with TaskGroup(group_id='cleanup') as cleanup_tg:
         remove_dcm2niix_image = DockerRemoveImage(
@@ -163,15 +170,15 @@ with DAG('asl-main-dag', schedule_interval='@daily', start_date=datetime(2021, 8
         )
         asl_perfusion_processing >> remove_fsl_image
 
-        # todo: change to python operator
-        remove_staged_files = PythonOperator(
-            task_id='remove-staged-files',
-            python_callable=rm_files,
-            op_kwargs={
-                'path': "{{ var.value.asl_raw_path }}"
-            },
-            trigger_rule=TriggerRule.NONE_FAILED
-        )
+        remove_staged_files = DummyOperator(task_id='remove-staged-files')
+        # remove_staged_files = PythonOperator(
+        #     task_id='remove-staged-files',
+        #     python_callable=rm_files,
+        #     op_kwargs={
+        #         'path': "{{ var.value.asl_raw_path }}"
+        #     },
+        #     trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED,
+        # )
         asl_perfusion_processing >> remove_staged_files
 
     with TaskGroup(group_id='errors') as errors_tg:
