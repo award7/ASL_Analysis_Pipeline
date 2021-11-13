@@ -1,7 +1,7 @@
 import os
 from glob import glob
 from pydicom import read_file as dcm_read_file
-from typing import Union, List
+from typing import Union, List, Generator
 import logging
 from pydicom.errors import InvalidDicomError
 from shutil import rmtree
@@ -11,14 +11,16 @@ from shutil import rmtree
 
 def get_dicom_field(*, path: str, field: str, **kwargs) -> str:
     file = os.listdir(path)[0]
-    dcm = dcm_read_file(file)
-    return getattr(dcm, field)
+    dcm = dcm_read_file(os.path.join(path, file))
+    return str(getattr(dcm, field))
 
 
 def check_for_scans(*, path: str, **kwargs) -> bool:
     # check for any folders in /bucket/asl/raw
     if os.listdir(path):
         return True
+    else:
+        return False
 
 
 def count_t1_images(*, path: str, **kwargs) -> str:
@@ -44,6 +46,21 @@ def count_t1_images(*, path: str, **kwargs) -> str:
                          f"only {file_count} were found.")
 
 
+def rename_asl_sessions(*, path: str, **kwargs) -> None:
+    potential_asl_names = _asl_scan_names()
+    sessions = []
+    for root, dirs, files in os.walk(path):
+        if not dirs and any(name in root for name in potential_asl_names):
+            sessions.append(root)
+
+    sessions.sort()
+    for idx, session in enumerate(sessions):
+        os.rename(session, os.path.join(os.path.dirname(session), f'asl{idx}'))
+
+    # return the number of directories that were renamed
+    return idx + 1
+
+
 def count_asl_images(*, root_path: str, **kwargs) -> None:
     """
 
@@ -52,18 +69,25 @@ def count_asl_images(*, root_path: str, **kwargs) -> None:
     :return: None
     """
 
-    sessions = get_asl_sessions(path=root_path)
+    potential_asl_names = _asl_scan_names()
+
+    # get lowest directories to search for asl directories
+    sessions = []
+    for root, dirs, files in os.walk(root_path):
+        if not dirs and any(name in root for name in potential_asl_names):
+            sessions.append(root)
+
     bad_sessions = {}
     for idx, path in enumerate(sessions):
         files_in_folder = os.listdir(path)
-        dcm = dcm_read_file(files_in_folder[0])
+        dcm = dcm_read_file(os.path.join(path, files_in_folder[0]))
         images_in_acquisition = getattr(dcm, 'ImagesInAcquisition')
         file_count = len(files_in_folder)
 
         if file_count < images_in_acquisition:
             bad_sessions[f'session{idx}'] = [path, file_count, images_in_acquisition]
 
-    if len(bad_sessions) > 1:
+    if len(bad_sessions) > 0:
         error_string = ""
         for key, val in bad_sessions.items():
             error_string = f"{error_string}" \
@@ -71,8 +95,9 @@ def count_asl_images(*, root_path: str, **kwargs) -> None:
                            f"{bad_sessions[key][2]} but only {bad_sessions[key][1]} were found. " \
                            f"{os.linesep}"
         ti = kwargs['ti']
-        ti.xcom_push(value=[path[0] for path in bad_sessions.values()])
-        raise ValueError(error_string)
+        ti.xcom_push(key="bad_sessions", value=','.join([path[0] for path in bad_sessions.values()]))
+        return 'errors.notify-about-error'
+    return 'get-subject-id'
 
 
 def get_file(*, path: str, search: str, **kwargs) -> str:
@@ -106,7 +131,7 @@ def make_dir(*, path: Union[str, List[str]], **kwargs) -> str:
     return path
 
 
-def get_asl_sessions(*, path: str, exclude: list = None, **kwargs) -> list:
+def get_asl_sessions(*, path: str, exclude: str = None, **kwargs) -> Generator:
     """
     find asl folders to trigger multiple asl-perfusion-processing dags
     :param path: is the target path for the dicom sorting
@@ -116,13 +141,19 @@ def get_asl_sessions(*, path: str, exclude: list = None, **kwargs) -> list:
     """
 
     potential_asl_names = _asl_scan_names()
+    if exclude:
+        exclude = exclude.split(',')
 
     # get lowest directories to search for asl directories
     for root, dirs, files in os.walk(path):
         if not dirs and any(name in root for name in potential_asl_names):
-            if root is not None and root in exclude:
+            if exclude is not None and root in exclude:
                 continue
-            yield {'session': root}
+            session_number = os.path.join(kwargs['asl_proc_path'], os.path.basename(root))
+            yield {
+                'session': root,
+                'asl_proc_path': asl_proc_path
+            }
 
 
 def get_docker_url() -> str:
@@ -139,11 +170,6 @@ def rm_files(*, path: str, **kwargs) -> None:
     :return: None
     """
     rmtree(path)
-
-
-def package_xcom_to_conf(*, mapping: dict, **kwargs) -> None:
-    for key, val in mapping.items():
-        kwargs['dag_run'].conf[key] = val
 
 
 def _t1_scan_names() -> list:
@@ -179,10 +205,10 @@ def _get_t1_path(*, path: str, **kwargs) -> str:
     if len(t1_paths) > 1:
         d = {}
         for path in t1_paths:
-            dcm = dcm_read_file(os.listdir(path)[0])
+            dcm = dcm_read_file(os.path.join(path, os.listdir(path)[0]))
             d[path] = getattr(dcm, 'AcquisitionTime')
 
         sorted_d = {k: v for k, v in sorted(d.items(), key=lambda item: item[1])}
         t1_paths = next(iter(sorted_d))
+        return t1_paths
     return t1_paths[0]
-
