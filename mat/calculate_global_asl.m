@@ -20,7 +20,7 @@ function file = calculate_global_asl(mask, opts)
     
     arguments
         mask {mustBeFile, mustBeTextScalar};
-        opts.outdir {mustBeFolder, mustBeTextScalar} = '';
+        opts.outdir {mustBeTextScalar} = '';
         opts.prefix {mustBeTextScalar} = 'global';
         opts.subject {mustBeTextScalar} = datestr(now, 'YYYYDDmm');
         opts.time {mustBeTextScalar} = datestr(now, 'HHMMSS');
@@ -33,10 +33,10 @@ function file = calculate_global_asl(mask, opts)
     end
 
     % construct the output file name
-    outname = strcat(prefix, '_', subj, '_', time, '_bmasked.csv');
+    outname = strcat(opts.prefix, '_', opts.subject, '_', opts.time, '_bmasked.csv');
 
     vol = spm_vol(char(mask));
     globalValue = spm_global(vol);
-    file = fullfile(outdir, outname);
+    file = fullfile(opts.outdir, outname);
     writematrix(globalValue, file);
 end
