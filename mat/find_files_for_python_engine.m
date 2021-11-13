@@ -11,8 +11,10 @@ function file = find_files_for_python_engine(path, search)
         warning('Many files found in %s for the given search term %s\nSending files back as a comma-delimited string.', path, search);
         file = '';
         for idx = 1:length(files)
-            file = fullfile(files(1).folder, strcat(file, files(idx).name, ','));
+            file = strcat(file, fullfile(files(idx).folder, files(idx).name, ','));
         end
+        % strip last comma
+        file = file(1:end-1);
     else
         file = fullfile(files(1).folder, files(1).name);
     end
