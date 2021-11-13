@@ -41,7 +41,7 @@ function file = coregister_asl(ref, src, opts)
     end
     
     if isempty(opts.outdir)
-        [opts.outdir, ~, ~] = fileparts(ref);
+        [opts.outdir, ~, ~] = fileparts(src);
     else
         mustBeFolder(opts.outdir);
     end
