@@ -40,7 +40,7 @@ function file = invwarpXgm(img, mask, opts)
         opts.expr {mustBeTextScalar} = 'i2.*(i1>0.3)';
         opts.interp {mustBeInteger, mustBeInRange(opts.interp, -7, -1)} = -7;
         opts.prefix {mustBeTextScalar} = 'w';
-        opts.outdir {mustBeFolder} = '';
+        opts.outdir {mustBeTextScalar} = '';
         opts.subject {mustBeTextScalar} = datestr(date, 'YYYYmmDD');
         opts.time {mustBeTextScalar} = datestr(now, 'HHMMSS');
     end

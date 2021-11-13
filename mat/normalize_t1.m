@@ -30,7 +30,7 @@ function file = normalize_t1(img, deform_field, bias, opts)
     % 'prefix' = File prefix (Default = 'w')
     %            (char | str)
     %
-    % 'outdir' = Save path (default = T1ProcessedDir)
+    % 'outdir' = Save path (default = ASLProcessedDir)
     %            (char | str)
     
     arguments
@@ -40,7 +40,7 @@ function file = normalize_t1(img, deform_field, bias, opts)
         opts.other {mustBeTextScalar} = '';
         opts.interp {mustBeInteger, mustBeInRange(opts.interp, 1, 7)} = 7;
         opts.prefix {mustBeTextScalar} = 'w';
-        opts.outdir {mustBeFolder} = '';
+        opts.outdir {mustBeTextScalar} = '';
     end
     
     if ~isempty(opts.other)

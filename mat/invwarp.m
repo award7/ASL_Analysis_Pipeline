@@ -32,7 +32,7 @@ function new_file = invwarp(mask, deform_field, fov, opts)
         fov {mustBeFile};
         opts.fwhm (1,3) double {mustBeVector} = [0 0 0];
         opts.prefix {mustBeTextScalar} = 'w';
-        opts.outdir {mustBeFolder} = '';
+        opts.outdir {mustBeTextScalar} = '';
         opts.subject {mustBeTextScalar} = datestr(date, 'YYYYmmDD');
         opts.time {mustBeTextScalar} = datestr(now, 'HHMMSS');
     end
