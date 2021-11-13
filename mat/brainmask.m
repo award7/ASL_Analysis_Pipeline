@@ -1,4 +1,4 @@
-function file = brainmask_asl(img, mask, opts)
+function file = brainmask(img, mask, opts)
     % BRAINMASK Apply mask to ASL image
     %
     % Required arguments:
@@ -33,7 +33,7 @@ function file = brainmask_asl(img, mask, opts)
         mask {mustBeFile, mustBeTextScalar};
         opts.expr {mustBeTextScalar} = 'i1.*i2';
         opts.interp {mustBeInteger, mustBeInRange(opts.interp, -7, -1)} = -7;
-        opts.outdir {mustBeFolder, mustBeTextScalar};
+        opts.outdir {mustBeTextScalar} = '';
         opts.subject {mustBeTextScalar} = datestr(date, 'yyyymmdd');
         opts.time {mustBeTextScalar} = datestr(now, 'HHMMSS');
         opts.suffix {mustBeTextScalar} = 'bmasked';
