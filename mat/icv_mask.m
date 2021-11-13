@@ -23,8 +23,8 @@ function new_file = icv_mask(deform_field, fov, opts)
         deform_field {mustBeFile};
         fov {mustBeFile};
         opts.fwhm (1,3) double {mustBeVector} = [0 0 0];
-        opts.prefix {mustBeTextScalar} = 'wt1';
-        opts.outdir {mustBeFolder} = '';
+        opts.prefix {mustBeTextScalar} = 'w';
+        opts.outdir {mustBeTextScalar} = '';
     end
     
     if isempty(opts.outdir)
@@ -35,7 +35,7 @@ function new_file = icv_mask(deform_field, fov, opts)
     
     % TODO: set path for vm
     % path within docker container
-    mask = '/opt/spm12-r7771/spm12_mcr/spm12/tpm/mask_ICV.nii';
+    mask = "/usr/local/MATLAB/R2021a/spm12/tpm/mask_ICV.nii";
 
     % spm batch
     spm('defaults', 'FMRI');
@@ -55,7 +55,7 @@ function new_file = icv_mask(deform_field, fov, opts)
 
     % spm doesn't allow dependency-file I/O for deformation utility,
     % so need to move and rename ourself
-    old_file = fullfile(outdir, 'wmask_ICV.nii');
-    new_file = fullfile(outdir, strcat(opts.prefix, '_mask_icv.nii'));
+    old_file = fullfile(opts.outdir, 'wmask_ICV.nii');
+    new_file = fullfile(opts.outdir, strcat(opts.prefix, '_mask_icv.nii'));
     movefile(old_file, new_file);
 end
