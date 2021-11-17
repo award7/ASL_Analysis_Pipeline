@@ -1,5 +1,6 @@
 from airflow import DAG
 from airflow.operators.dummy import DummyOperator
+from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.utils.task_group import TaskGroup
@@ -7,7 +8,6 @@ from airflow.utils.trigger_rule import TriggerRule
 from operators.trigger_multi_dagrun import TriggerMultiDagRunOperator
 from operators.custom_docker_operator import (
     DockerBuildLocalImageOperator,
-    DockerRemoveImage
 )
 
 from datetime import datetime
@@ -86,17 +86,6 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
             trigger_rule=TriggerRule.NONE_FAILED
         )
 
-        build_fsl_image = DummyOperator(
-            task_id='build-fsl-image'
-        )
-
-        # build_fsl_image = DockerBuildLocalImageOperator(
-        #     task_id='build-fsl-image',
-        #     path="{{ var.value.fsl_docker_image }}",
-        #     tag='asl/fsl',
-        #     trigger_rule=TriggerRule.NONE_FAILED
-        # )
-
     with TaskGroup(group_id='t1-processing') as t1_tg:
         t1_processing = TriggerDagRunOperator(
             task_id='t1-processing-dag',
@@ -108,10 +97,38 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
                 'subject_id': "{{ ti.xcom_pull(task_ids='init.get-subject-id') }}"
             }
         )
-        [build_dcm2niix_image] >> t1_processing
-        t1_processing >> [build_afni_image, build_fsl_image]
+        build_dcm2niix_image >> t1_processing
+        t1_processing >> build_afni_image
 
     with TaskGroup(group_id='perfusion-processing') as perfusion_tg:
+        FIND_FILE_COMMAND = """echo $(find {{ params.path }} -type f -name {{ params.file }})"""
+
+        get_gm_image = BashOperator(
+            task_id='get-gm-image',
+            bash_command=FIND_FILE_COMMAND,
+            params={
+                "path": "{{ ti.xcom_pull(task_ids='init.make-proc-t1-path') }}",
+                "file": "sc1*.nii"
+            }
+        )
+        t1_processing >> get_gm_image
+
+        get_smoothed_gm_image = BashOperator(
+            task_id='get-smoothed-gm-image',
+            bash_command=FIND_FILE_COMMAND,
+            params={
+                "path": "{{ ti.xcom_pull(task_ids='init.make-proc-t1-path') }}",
+                "file": "sc1*.nii"
+            }
+        )
+        t1_processing >> get_smoothed_gm_image
+
+        get_t1_deformation_field = BashOperator(
+            task_id='get-t1-deformation-field',
+            bash_command="""echo $(find {{ params.path }} -type f -name {{ params.file }}"""
+        )
+        t1_processing >> get_t1_deformation_field
+
         asl_perfusion_processing = DummyOperator(
             task_id='asl-perfusion'
         )
@@ -128,30 +145,10 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
 
         #     }
         # )
-        [t1_processing, build_afni_image, build_fsl_image] >> asl_perfusion_processing
+        [t1_processing, build_afni_image, get_gm_image,
+         get_smoothed_gm_image, get_t1_deformation_field] >> asl_perfusion_processing
 
     with TaskGroup(group_id='cleanup') as cleanup_tg:
-        remove_dcm2niix_image = DockerRemoveImage(
-            task_id='remove-dcm2niix-image',
-            image='asl/dcm2niix',
-            trigger_rule=TriggerRule.ALL_DONE
-        )
-        t1_processing >> remove_dcm2niix_image
-
-        remove_afni_image = DockerRemoveImage(
-            task_id='remove-afni-image',
-            image='asl/afni',
-            trigger_rule=TriggerRule.ALL_DONE
-        )
-        asl_perfusion_processing >> remove_afni_image
-
-        remove_fsl_image = DockerRemoveImage(
-            task_id='remove-fsl-image',
-            image='asl/fsl',
-            trigger_rule=TriggerRule.ALL_DONE
-        )
-        asl_perfusion_processing >> remove_fsl_image
-
         remove_staged_files = PythonOperator(
             task_id='remove-staged-files',
             python_callable=rm_files,
