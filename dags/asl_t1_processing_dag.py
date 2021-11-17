@@ -89,7 +89,8 @@ with DAG(dag_id='t1-processing', schedule_interval=None, start_date=datetime(202
         op_args=["{{ ti.xcom_pull(task_ids='segment-t1-image', key='return_value2') }}"],
         op_kwargs={
             'subject': "{{ dag_run.conf['subject_id'] }}"
-        }
+        },
+        nargout=1
     )
     segment_t1 >> get_brain_volumes
 
@@ -102,6 +103,18 @@ with DAG(dag_id='t1-processing', schedule_interval=None, start_date=datetime(202
         ],
         op_kwargs={
             'fwhm': matlab.double([5, 5, 5])
-        }
+        },
+        nargout=1
     )
     segment_t1 >> smooth_gm
+
+    apply_icv_mask = MatlabOperator(
+        task_id='apply-icv-mask',
+        matlab_function='icv_mask.m',
+        matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+        op_args=[
+            "{{ ti.xcom_pull(task_ids='segment-t1-image', value='return_value1') }}",
+            "{{ ti.xcom_pull(task_ids='smooth') }}"
+        ]
+    )
+    smooth_gm >> apply_icv_mask
