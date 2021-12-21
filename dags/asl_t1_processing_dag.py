@@ -118,3 +118,10 @@ with DAG(dag_id='t1-processing', schedule_interval=None, start_date=datetime(202
         ]
     )
     smooth_gm >> apply_icv_mask
+
+    inverse_warp_mask = MatlabOperator(
+        task_id='inverse-warp-mask',
+        matlab_function='invwarp.m',
+        matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+    )
+    create_perfusion_mask >> inverse_warp_mask

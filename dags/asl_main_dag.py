@@ -79,13 +79,6 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
         )
         get_subject_id >> build_dcm2niix_image
 
-        build_afni_image = DockerBuildLocalImageOperator(
-            task_id='build-afni-image',
-            path="{{ var.value.afni_docker_image }}",
-            tag='asl/afni',
-            trigger_rule=TriggerRule.NONE_FAILED
-        )
-
     with TaskGroup(group_id='t1-processing') as t1_tg:
         t1_processing = TriggerDagRunOperator(
             task_id='t1-processing-dag',
@@ -98,7 +91,6 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
             }
         )
         build_dcm2niix_image >> t1_processing
-        t1_processing >> build_afni_image
 
     with TaskGroup(group_id='perfusion-processing') as perfusion_tg:
         FIND_FILE_COMMAND = """echo $(find {{ params.path }} -type f -name {{ params.file }})"""
@@ -129,6 +121,11 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
         )
         t1_processing >> get_t1_deformation_field
 
+        get_bias_corrected_image = BashOperator(
+            task_id='get-bias-corrected-field',
+            bash_command=FIND_FILE_COMMAND
+        )
+
         asl_perfusion_processing = DummyOperator(
             task_id='asl-perfusion'
         )
@@ -145,7 +142,7 @@ with DAG('asl-main-dag', schedule_interval=None, start_date=datetime(2021, 8, 1)
 
         #     }
         # )
-        [t1_processing, build_afni_image, get_gm_image,
+        [t1_processing, get_gm_image,
          get_smoothed_gm_image, get_t1_deformation_field] >> asl_perfusion_processing
 
     with TaskGroup(group_id='cleanup') as cleanup_tg:

@@ -16,7 +16,7 @@ function new_file = icv_mask(deform_field, fov, opts)
     % 'prefix' = File prefix (default = 'wt1')
     %            (char | str)
     %
-    % 'outdir' = Save path (default = same as /path/to/fov)
+    % 'outdir' = Save path (default = same as /path/to/deform_field)
     %            (char | str)
 
     arguments
@@ -32,9 +32,7 @@ function new_file = icv_mask(deform_field, fov, opts)
     else
         mustBeFolder(opts.outdir);
     end
-    
-    % TODO: set path for vm
-    % path within docker container
+
     mask = "/usr/local/MATLAB/R2021a/spm12/tpm/mask_ICV.nii";
 
     % spm batch

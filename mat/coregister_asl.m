@@ -23,7 +23,7 @@ function file = coregister_asl(ref, src, opts)
     % 'prefix' = File prefix (default = 'r')
     %            (char | str)
     %
-    % 'outdir' = Save path (default = /path/to/ref)
+    % 'outdir' = Save path (default = /path/to/src)
     %            (char | str)
 
     arguments

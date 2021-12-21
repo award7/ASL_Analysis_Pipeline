@@ -7,7 +7,9 @@ from operators.docker_templated_mounts_operator import DockerTemplatedMountsOper
 from operators.matlab_operator import MatlabOperator
 from airflow.utils.trigger_rule import TriggerRule
 
-from utils.utils import make_dir
+from utils.utils import make_dir, get_mask_count
+
+
 
 
 with DAG(dag_id='asl-perfusion-processing', ) as dag:
@@ -56,7 +58,7 @@ with DAG(dag_id='asl-perfusion-processing', ) as dag:
         auto_remove=True,
         do_xcom_push=True
     )
-    make_proc_asl_paths >> afni_to3d
+    make_proc_asl_path >> afni_to3d
 
     pcasl = BashOperator(
         task_id='pcasl',
@@ -125,52 +127,82 @@ with DAG(dag_id='asl-perfusion-processing', ) as dag:
         matlab_function='coregister_asl.m',
         matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
         op_args=[
-            "{{ dag_run.conf['asl_proc_path'] }}"
+            "{{ dag_run.conf['smoothed_gm_image'] }}",
+            "{{ ti.xcom_pull(task_ids='afni-3dcalc-fmap') }}"
         ],
         op_kwargs={
-            'ref': "",
-            'nargout': '4'
-        }
+            'other': "{{ ti.xcom_pull(task_ids='afni-3dcalc-pdmap') }}"
+        },
+        nargout=1
     )
     [afni_3dcalc_fmap, afni_3dcalc_pdmap] >> coregister
 
-    # todo: change to matlab operator
-    normalize = DummyOperator(
-        task_id='normalize'
+    normalize = MatlabOperator(
+        task_id='normalize',
+        matlab_function='normalize_t1.m',
+        matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+        op_args=[
+            "{{ ti.xcom_pull(task_ids='coregister', value='return_value0') }}",
+            "{{ dag_run.conf['deformation_field'] }}",
+            "{{ dag_run.conf['bias_corrected_image'] }}"
+        ],
+        op_kwargs={
+            'other': "{{ ti.xcom_pull(task_ids='coregister', value='return_value1') }}"
+        },
+        nargout=1
     )
     coregister >> normalize
 
-    # todo: change to matlab operator
-    smooth_coregistered_image = DummyOperator(
-        task_id='smooth-coregistered-image'
+    smooth_coregistered_normalized_fmap = MatlabOperator(
+        task_id='smooth-coregistered-normalized-fmap',
+        matlab_function='smooth_t1.m',
+        matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+        op_args=[
+            "{{ ti.xcom_pull(task_ids='normalize', value='return_value0') }}"
+        ],
+        nargout=1
     )
-    normalize >> smooth_coregistered_image
+    normalize >> smooth_coregistered_normalized_fmap
 
-    # todo: change to matlab operator
-    apply_icv_mask = DummyOperator(
-        task_id='apply-icv-mask'
+    smooth_coregistered_normalized_pdmap = MatlabOperator(
+        task_id='smooth-coregistered-normalized-pdmap',
+        matlab_function='smooth_t1.m',
+        matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+        op_args=[
+            "{{ ti.xcom_pull(task_ids='normalize', value='return_value1') }}"
+        ],
+        nargout=1
     )
-    smooth_coregistered_image >> apply_icv_mask
+    normalize >> smooth_coregistered_normalized_pdmap
 
-    # todo: change to matlab operator
-    create_perfusion_mask = DummyOperator(
-        task_id='create-perfusion-mask'
+    create_perfusion_mask = MatlabOperator(
+        task_id='create-perfusion-mask',
+        matlab_function='brainmask.m',
+        matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+        op_args=[
+            "{{ ti.xcom_pull(task_ids='coregister', value='return_value0') }}",
+            "{{ dag_run.comf['icv_mask_image'] }}"
+        ],
+        nargout=1
     )
-    apply_icv_mask >> create_perfusion_mask
+    smooth_coregistered_normalized_fmap >> create_perfusion_mask
 
-    # todo: change to matlab operator
-    get_global_perfusion = DummyOperator(
-        task_id='get-global-perfusion'
+    get_global_perfusion = MatlabOperator(
+        task_id='get-global-perfusion',
+        matlab_function='calculate_global_asl.m',
+        matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+        op_args=[
+            "{{ ti.xcom_pull(task_ids='create-perfusion-mask') }}"
+        ],
+        nargout=1
     )
     create_perfusion_mask >> get_global_perfusion
 
     with TaskGroup(group_id='roi') as roi_tg:
-        for roi in range(0, 100):
-            # todo: change to matlab operator
-            inverse_warp_mask = DummyOperator(
-                task_id='inverse-warp-mask'
-            )
-            create_perfusion_mask >> inverse_warp_mask
+        MASK_COUNT = get_mask_count("/home/schragelab/airflow/dags/asl_analysis_pipeline/masks")
+        for roi in range(0, MASK_COUNT):
+
+
 
             # todo: change to matlab operator
             restrict_gm_to_mask = DummyOperator(

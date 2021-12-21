@@ -4,21 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="removed reslice_t1 and build_dcm2niix_image">
+    <list default="true" id="6acc740c-f4b2-4e13-a360-c2bfb05523ff" name="Default Changelist" comment="added `apply-icv-mask` task">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dags/asl_main_dag.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/asl_main_dag.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dags/asl_perfusion_processing_dag.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/asl_perfusion_processing_dag.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dags/asl_t1_processing_dag.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/asl_t1_processing_dag.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dags/tmp.py" beforeDir="false" afterPath="$PROJECT_DIR$/dags/tmp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mat/brain_volumes.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/brain_volumes.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mat/brainmask.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/brainmask.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mat/calculate_global_asl.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/calculate_global_asl.m" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mat/coregister_asl.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/coregister_asl.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mat/find_files_for_python_engine.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/find_files_for_python_engine.m" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mat/icv_mask.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/icv_mask.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mat/invwarp.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/invwarp.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mat/invwarpXgm.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/invwarpXgm.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mat/normalize_t1.m" beforeDir="false" afterPath="$PROJECT_DIR$/mat/normalize_t1.m" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/shell/afni_to3d.sh" beforeDir="false" afterPath="$PROJECT_DIR$/shell/afni_to3d.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/utils.py" afterDir="false" />
     </list>
@@ -79,7 +72,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$USER_HOME$/repos" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../plugins/operators" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -290,7 +283,12 @@
       <workItem from="1636643345755" duration="5780000" />
       <workItem from="1636656226328" duration="287000" />
       <workItem from="1636657788303" duration="10368000" />
-      <workItem from="1636745874015" duration="9599000" />
+      <workItem from="1636745874015" duration="10236000" />
+      <workItem from="1636997510890" duration="2772000" />
+      <workItem from="1637177875718" duration="5834000" />
+      <workItem from="1639502222023" duration="33000" />
+      <workItem from="1640021348141" duration="1342000" />
+      <workItem from="1640101537256" duration="629000" />
     </task>
     <task id="LOCAL-00001" summary="added more processing steps">
       <created>1621881552444</created>
@@ -509,7 +507,98 @@
       <option name="project" value="LOCAL" />
       <updated>1636419467856</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="major beta updates">
+      <created>1636763776540</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1636763776540</updated>
+    </task>
+    <task id="LOCAL-00033" summary="add task to create proc folder">
+      <created>1636763812351</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1636763812352</updated>
+    </task>
+    <task id="LOCAL-00034" summary="add task to create proc folder; template dag_run.conf">
+      <created>1636763832699</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1636763832699</updated>
+    </task>
+    <task id="LOCAL-00035" summary="add `suffix` for opts; change default naming">
+      <created>1636763868084</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1636763868084</updated>
+    </task>
+    <task id="LOCAL-00036" summary="fixed bug on `outdir` argument check">
+      <created>1636763893214</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1636763893214</updated>
+    </task>
+    <task id="LOCAL-00037" summary="fixed bug on `outdir` argument check; fixed errors on parameters">
+      <created>1636763944562</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1636763944562</updated>
+    </task>
+    <task id="LOCAL-00038" summary="fixed bug on `outdir` default location">
+      <created>1636763964663</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1636763964663</updated>
+    </task>
+    <task id="LOCAL-00039" summary="fixed bug on generated file string">
+      <created>1636763991323</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1636763991323</updated>
+    </task>
+    <task id="LOCAL-00040" summary="fixed error on ICV mask path">
+      <created>1636764023095</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1636764023095</updated>
+    </task>
+    <task id="LOCAL-00041" summary="fixed bug on `outdir` argument checker">
+      <created>1636764054880</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1636764054880</updated>
+    </task>
+    <task id="LOCAL-00042" summary="major beta updates">
+      <created>1636764078697</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1636764078697</updated>
+    </task>
+    <task id="LOCAL-00043" summary="removed `DockerRemoveImageOperator`; added bash operators to find T1 files">
+      <created>1637180549711</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1637180549711</updated>
+    </task>
+    <task id="LOCAL-00044" summary="added `apply-icv-mask` task">
+      <created>1637181878469</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1637181878469</updated>
+    </task>
+    <option name="localTasksCounter" value="45" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -528,18 +617,6 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="added _check_for_scans function; may utilize as sensor" />
-    <MESSAGE value="fixed _get_subject_id" />
-    <MESSAGE value="fixed _get_asl_sessions" />
-    <MESSAGE value="fixed _count_t1_images" />
-    <MESSAGE value="added _get_file" />
-    <MESSAGE value="added logic around spm move batch" />
-    <MESSAGE value="removed make_proc_staging_path" />
-    <MESSAGE value="changed `get_asl_sessions` to ShortCircuitOperator" />
-    <MESSAGE value="changed init_tg order" />
-    <MESSAGE value="fixed count_t1_images for correct xcom_pull" />
-    <MESSAGE value="added trigger_rule to build_dcm2niix_image" />
-    <MESSAGE value="changed order of counting_t1 &gt;&gt; build_dcm2niix &gt;&gt; dcm2niix" />
     <MESSAGE value="added segment_t1" />
     <MESSAGE value="added operators to fetch segmented files" />
     <MESSAGE value="added smooth_gm" />
@@ -553,7 +630,19 @@
     <MESSAGE value="prepping for airflow" />
     <MESSAGE value="cleaning up unnecessary files for airflow" />
     <MESSAGE value="moved helper functions to utils/utils.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="moved helper functions to utils/utils.py" />
+    <MESSAGE value="add task to create proc folder" />
+    <MESSAGE value="add task to create proc folder; template dag_run.conf" />
+    <MESSAGE value="add `suffix` for opts; change default naming" />
+    <MESSAGE value="fixed bug on `outdir` argument check" />
+    <MESSAGE value="fixed bug on `outdir` argument check; fixed errors on parameters" />
+    <MESSAGE value="fixed bug on `outdir` default location" />
+    <MESSAGE value="fixed bug on generated file string" />
+    <MESSAGE value="fixed error on ICV mask path" />
+    <MESSAGE value="fixed bug on `outdir` argument checker" />
+    <MESSAGE value="major beta updates" />
+    <MESSAGE value="removed `DockerRemoveImageOperator`; added bash operators to find T1 files" />
+    <MESSAGE value="added `apply-icv-mask` task" />
+    <option name="LAST_COMMIT_MESSAGE" value="added `apply-icv-mask` task" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

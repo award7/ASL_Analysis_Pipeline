@@ -160,6 +160,10 @@ def get_docker_url() -> str:
     return "unix://var/run/docker.sock"
 
 
+def get_mask_count(*, path: str, **kwargs) -> int:
+    return len(os.listdir(path))
+
+
 def rm_files(*, path: str, **kwargs) -> None:
     """
     remove folders and/or files from path
