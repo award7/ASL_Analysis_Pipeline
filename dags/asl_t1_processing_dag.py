@@ -1,6 +1,7 @@
 from airflow import DAG
 from operators.matlab_operator import MatlabOperator
 from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
 from operators.docker_templated_mounts_operator import DockerTemplatedMountsOperator
 from datetime import datetime
 import matlab
@@ -24,30 +25,9 @@ with DAG(dag_id='t1-processing', schedule_interval=None, start_date=datetime(202
         }
     )
 
-    dcm2niix = DockerTemplatedMountsOperator(
+    dcm2niix = BashOperator(
         task_id='dcm2niix',
-        image='asl/dcm2niix',
-        # this command calls a bash shell ->
-        # calls dcm2niix program (filename being protocol_name_timestamp) and outputs to the /tmp directory on the
-        #     container ->
-        # find the .nii file that was created and save the name to a variable ->
-        # move the created files from /tmp to the mounted directory /out ->
-        # clear the stdout ->
-        # echo the filename to stdout so it will be returned as the xcom value
-        command="""/bin/sh -c \'dcm2niix -f t1_%n -o /tmp /in; clear; file=$(find ./tmp -name "*.nii" -type f); mv /tmp/* /out; clear; echo "${file##*/}"\'""",
-        mounts=[
-            {
-                'target': '/in',
-                'source': "{{ dag_run.conf['t1_raw_path'] }}",
-                'type': 'bind'
-            },
-            {
-                'target': '/out',
-                'source': "{{ ti.xcom_pull(task_ids='make-proc-t1-path') }}",
-                'type': 'bind'
-            },
-        ],
-        auto_remove=True,
+        bash_command="/home/schragelab/airflow/dags/asl_analysis_pipeline/shell/runDcm2nii.bash {{ var.value.asl_proc_path }} {{ dag_run.conf['t1_raw_path'] }} ",
         do_xcom_push=True
     )
     make_proc_t1_path >> dcm2niix
@@ -119,9 +99,9 @@ with DAG(dag_id='t1-processing', schedule_interval=None, start_date=datetime(202
     )
     smooth_gm >> apply_icv_mask
 
-    inverse_warp_mask = MatlabOperator(
-        task_id='inverse-warp-mask',
-        matlab_function='invwarp.m',
-        matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
-    )
-    create_perfusion_mask >> inverse_warp_mask
+    # inverse_warp_mask = MatlabOperator(
+    #     task_id='inverse-warp-mask',
+    #     matlab_function='invwarp.m',
+    #     matlab_function_paths=["{{ var.value.matlab_path_asl }}"],
+    # )
+    # create_perfusion_mask >> inverse_warp_mask
