@@ -1,0 +1,3 @@
+[submodule "src/airflow/plugins"]
+	path = src/airflow/plugins
+	url = https://github.com/award7/airflow_plugins.git
