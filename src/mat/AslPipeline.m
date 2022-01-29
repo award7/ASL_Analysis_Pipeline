@@ -27,9 +27,7 @@ classdef AslPipeline < handle
                 
     
     methods (Access = public, Static)
-        
-        
-        
+
         function files = dcm2nii(args)
             arguments
                 args.Source     {mustBeFolder};
@@ -219,21 +217,21 @@ classdef AslPipeline < handle
             clear matlabbatch;
             
             % forward deform
-            matlabbatch{10}.spm.util.defs.comp{1}.def(1) = char(args.DeformationField);
-            matlabbatch{10}.spm.util.defs.out{1}.push.fnames = {args.Map};
-            matlabbatch{10}.spm.util.defs.out{1}.push.weight = {''};
-            matlabbatch{10}.spm.util.defs.out{1}.push.savedir.savepwd = 1;
-            matlabbatch{10}.spm.util.defs.out{1}.push.fov.file(1) = cfg_dep('Smooth: Smoothed Images', substruct('.','val', '{}',{8}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
-            matlabbatch{10}.spm.util.defs.out{1}.push.preserve = 0;
-            matlabbatch{10}.spm.util.defs.out{1}.push.fwhm = [0 0 0];
-            matlabbatch{10}.spm.util.defs.out{1}.push.prefix = '';
+            matlabbatch{1}.spm.util.defs.comp{1}.def(1) = char(args.DeformationField);
+            matlabbatch{1}.spm.util.defs.out{1}.push.fnames = {args.Map};
+            matlabbatch{1}.spm.util.defs.out{1}.push.weight = {''};
+            matlabbatch{1}.spm.util.defs.out{1}.push.savedir.savepwd = 1;
+            matlabbatch{1}.spm.util.defs.out{1}.push.fov.file(1) = cfg_dep('Smooth: Smoothed Images', substruct('.','val', '{}',{8}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
+            matlabbatch{1}.spm.util.defs.out{1}.push.preserve = 0;
+            matlabbatch{1}.spm.util.defs.out{1}.push.fwhm = [0 0 0];
+            matlabbatch{1}.spm.util.defs.out{1}.push.prefix = '';
 
             % move and rename forward deform img
-            matlabbatch{11}.cfg_basicio.file_dir.file_ops.file_move.files(1) = cfg_dep('Deformations: Warped Images', substruct('.','val', '{}',{10}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','warped'));
-            matlabbatch{11}.cfg_basicio.file_dir.file_ops.file_move.action.moveren.moveto(1) = cfg_dep('Make Directory: Make Directory ''<UNDEFINED>''', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','dir'));
-            matlabbatch{11}.cfg_basicio.file_dir.file_ops.file_move.action.moveren.patrep.pattern = '(w)';
-            matlabbatch{11}.cfg_basicio.file_dir.file_ops.file_move.action.moveren.patrep.repl = 'fwd_';
-            matlabbatch{11}.cfg_basicio.file_dir.file_ops.file_move.action.moveren.unique = false;
+            matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.files(1) = cfg_dep('Deformations: Warped Images', substruct('.','val', '{}',{10}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','warped'));
+            matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveren.moveto(1) = cfg_dep('Make Directory: Make Directory ''<UNDEFINED>''', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','dir'));
+            matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveren.patrep.pattern = '(w)';
+            matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveren.patrep.repl = 'fwd_';
+            matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveren.unique = false;
             
             spm_jobman('run', matlabbatch);
             
@@ -256,16 +254,16 @@ classdef AslPipeline < handle
             clear matlabbatch;
             
             % image calculation
-            matlabbatch{12}.spm.util.imcalc.input(1) = char(args.Image);
-            matlabbatch{12}.spm.util.imcalc.input(2) = char(args.Mask);
-            matlabbatch{12}.spm.util.imcalc.output = 'perfusion_image';
-            matlabbatch{12}.spm.util.imcalc.outdir(1) = char(args.Target);
-            matlabbatch{12}.spm.util.imcalc.expression = 'i1.*i2';
-            matlabbatch{12}.spm.util.imcalc.var = struct('name', {}, 'value', {});
-            matlabbatch{12}.spm.util.imcalc.options.dmtx = 0;
-            matlabbatch{12}.spm.util.imcalc.options.mask = 0;
-            matlabbatch{12}.spm.util.imcalc.options.interp = -7;
-            matlabbatch{12}.spm.util.imcalc.options.dtype = 4;
+            matlabbatch{1}.spm.util.imcalc.input(1) = char(args.Image);
+            matlabbatch{1}.spm.util.imcalc.input(2) = char(args.Mask);
+            matlabbatch{1}.spm.util.imcalc.output = 'perfusion_image';
+            matlabbatch{1}.spm.util.imcalc.outdir(1) = char(args.Target);
+            matlabbatch{1}.spm.util.imcalc.expression = 'i1.*i2';
+            matlabbatch{1}.spm.util.imcalc.var = struct('name', {}, 'value', {});
+            matlabbatch{1}.spm.util.imcalc.options.dmtx = 0;
+            matlabbatch{1}.spm.util.imcalc.options.mask = 0;
+            matlabbatch{1}.spm.util.imcalc.options.interp = -7;
+            matlabbatch{1}.spm.util.imcalc.options.dtype = 4;
             
             spm_jobman('run', matlabbatch);
             
