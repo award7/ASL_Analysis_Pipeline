@@ -221,15 +221,11 @@ classdef AslPipeline < handle
             arguments
                 args.DeformationField   {mustBeFile};
                 args.FOV                {mustBeFile};
-                args.Mask               {mustBeTextScalar} = '';
+                args.Mask               {mustBeTextScalar};
                 args.Target             {mustBeFolder} = pwd;
             end
             
             timestamp = datetime('now');
-            
-            if isempty(args.Mask)
-                args.Mask = AslPipeline.getTpmPath('File', 'mask_ICV.nii');
-            end
             
             %% do spm processing
             spm('defaults', 'FMRI');
@@ -254,17 +250,21 @@ classdef AslPipeline < handle
         
         function files = perfusionImage(args)
             % returns 1 images
+            % expression
+            %   global = i1.*i2
+            %   roi = i2.*(i1>0.3)
             arguments
-                args.Image  {mustBeFile};
-                args.Mask   {mustBeFile};
-                args.Target {mustBeFolder} = pwd;
+                args.Image      {mustBeFile};
+                args.Mask       {mustBeFile};
+                args.Expression {mustBeTextScalar};
+                args.Target     {mustBeFolder} = pwd;
             end
             
             timestamp = datetime('now');
             
             % make output name
-            [~, image_name, ~] = fileparts(args.Image);
-            outname = strcat(image_name, '_perfusion');
+            [~, mask_name, ~] = fileparts(args.Mask);
+            outname = strcat(mask_name, '_perfusion');
             
             %% do spm processing
             spm('defaults', 'FMRI');
@@ -278,7 +278,7 @@ classdef AslPipeline < handle
                                                 };
             matlabbatch{1}.spm.util.imcalc.output = char(outname);
             matlabbatch{1}.spm.util.imcalc.outdir(1) = {char(args.Target)};
-            matlabbatch{1}.spm.util.imcalc.expression = 'i1.*i2';
+            matlabbatch{1}.spm.util.imcalc.expression = char(args.Expression);
             matlabbatch{1}.spm.util.imcalc.var = struct('name', {}, 'value', {});
             matlabbatch{1}.spm.util.imcalc.options.dmtx = 0;
             matlabbatch{1}.spm.util.imcalc.options.mask = 0;
@@ -293,8 +293,11 @@ classdef AslPipeline < handle
         
         function files = quantPerfusion(args)
             % returns 1 file
+            % Global (boolean/logical):
+            %   specify if the calculation is for global ASL (true) or an ROI (false)
             arguments
                 args.Image  {mustBeFile};
+                args.Global (1,1) = true;
                 args.Target {mustBeFolder} = pwd;
             end
             
@@ -303,7 +306,20 @@ classdef AslPipeline < handle
             volume = spm_vol(char(args.Image));
             value = spm_global(volume) * 100; % need to adjust factor
             
-            writematrix(value, fullfile(args.Target, "perfusion.txt"));
+            out_file = fullfile(args.Target, 'perfusion.csv');
+            
+            if ~exist(out_file, 'file')
+                writematrix('', out_file);
+            end
+            
+            mask = 'global';
+            if ~args.Global
+                [~, mask, ~] = fileparts(args.Image);
+            end
+            
+            fid = fopen(out_file, 'a+');
+            fprintf(fid, '%s,%s\n', mask, value);
+            fclose(fid);
             
             % get files
             files = AslPipeline.getFilesAsl('Target', args.Target, 'Timestamp', timestamp);
@@ -313,7 +329,7 @@ classdef AslPipeline < handle
     
     % helper methods
     methods (Access = public, Static)
-
+        
         function files = getFilesAsl(args)
             % return the newly created files
             arguments
@@ -348,9 +364,7 @@ classdef AslPipeline < handle
                 end
             end
         end
-       
 
-        
     end
     
 end
