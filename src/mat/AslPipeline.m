@@ -24,7 +24,6 @@ classdef AslPipeline < handle
     %       Coregister reference image with ASL image.
     %   *Parameters* (Name-Value Pairs)
     %       Required
-                
     
     methods (Access = public, Static)
 
@@ -72,10 +71,13 @@ classdef AslPipeline < handle
         end
         
         function files = coregister(args)
+            % returns 2 files (in alphabetical order):
+            %   the modified (resliced?) source image
+            %   the coregistered image
             arguments
                 args.ReferenceImage {mustBeFile};
                 args.SourceImage    {mustBeFile};
-                args.Target         {mustBeFolder};
+                args.Target         {mustBeFolder} = pwd;
             end
             
             timestamp = datetime('now');
@@ -86,8 +88,8 @@ classdef AslPipeline < handle
             clear matlabbatch;
             
             % coregister
-            matlabbatch{1}.spm.spatial.coreg.estwrite.ref = char(args.ReferenceImage);
-            matlabbatch{1}.spm.spatial.coreg.estwrite.source = char(args.SourceImage);
+            matlabbatch{1}.spm.spatial.coreg.estwrite.ref = {char(args.ReferenceImage)};
+            matlabbatch{1}.spm.spatial.coreg.estwrite.source = {char(args.SourceImage)};
             matlabbatch{1}.spm.spatial.coreg.estwrite.other = {''};
             matlabbatch{1}.spm.spatial.coreg.estwrite.eoptions.cost_fun = 'nmi';
             matlabbatch{1}.spm.spatial.coreg.estwrite.eoptions.sep = [4 2];
@@ -109,9 +111,16 @@ classdef AslPipeline < handle
         end
         
         function files = segment(args)
+            % returns 6 files (in alphabetical order):
+            %   c1*.nii (i.e. gray matter)
+            %   c2*.nii (i.e. white matter)
+            %   c3*.nii (i.e. csf)
+            %   m*.nii (i.e. bias correction)
+            %   *seg8.mat (i.e. segmentation parameters)
+            %   y*.nii (i.e. deformation field)
             arguments
                 args.Image  {mustBeFile};
-                args.Map    {mustBeFile} = '';
+                args.Map    {mustBeTextScalar} = '';
                 args.Target {mustBeFolder} = pwd;
             end
             
@@ -120,6 +129,15 @@ classdef AslPipeline < handle
             if isempty(args.Map)
                 matlab_path_in_parts = strsplit(matlabroot, filesep);
                 args.Map = fullfile(matlab_path_in_parts{1:end-1}, "spm12/tpm/TPM.nii");
+            else
+                try
+                    mustBeFile(args.Map)
+                catch me
+                    switch me.identifier
+                        case 'MATLAB:validators:mustBeFile'
+                            error("Error: Could not find file '%s'", fpath);
+                    end
+                end
             end
             
             %% do spm processing
@@ -129,7 +147,7 @@ classdef AslPipeline < handle
             
             % segment into gm, wm, csf
             % get deform field, bias correction, and seg parameters
-            matlabbatch{1}.spm.spatial.preproc.channel.vols = char(args.Image);
+            matlabbatch{1}.spm.spatial.preproc.channel.vols = {char(args.Image)};
             matlabbatch{1}.spm.spatial.preproc.channel.biasreg = 0.001;
             matlabbatch{1}.spm.spatial.preproc.channel.biasfwhm = 60;
             matlabbatch{1}.spm.spatial.preproc.channel.write = [0 1];
@@ -182,7 +200,7 @@ classdef AslPipeline < handle
             clear matlabbatch;
             
             % smooth image
-            matlabbatch{1}.spm.spatial.smooth.data = char(args.Image);
+            matlabbatch{1}.spm.spatial.smooth.data = {char(args.Image)};
             matlabbatch{1}.spm.spatial.smooth.fwhm = [8 8 8];
             matlabbatch{1}.spm.spatial.smooth.dtype = 0;
             matlabbatch{1}.spm.spatial.smooth.im = 0;
@@ -199,16 +217,18 @@ classdef AslPipeline < handle
         end
 
         function files = brainMask(args)
+            % returns 1 image
             arguments
                 args.DeformationField   {mustBeFile};
-                args.Mask               {mustBeFile} = '';
+                args.FOV                {mustBeFile};
+                args.Mask               {mustBeTextScalar} = '';
                 args.Target             {mustBeFolder} = pwd;
             end
             
             timestamp = datetime('now');
             
-            if isempty(args.Map)
-                args.Map = AslPipeline.getTpmPath('File', 'mask_ICV.nii');
+            if isempty(args.Mask)
+                args.Mask = AslPipeline.getTpmPath('File', 'mask_ICV.nii');
             end
             
             %% do spm processing
@@ -217,21 +237,14 @@ classdef AslPipeline < handle
             clear matlabbatch;
             
             % forward deform
-            matlabbatch{1}.spm.util.defs.comp{1}.def(1) = char(args.DeformationField);
-            matlabbatch{1}.spm.util.defs.out{1}.push.fnames = {args.Map};
+            matlabbatch{1}.spm.util.defs.comp{1}.def(1) = {char(args.DeformationField)};
+            matlabbatch{1}.spm.util.defs.out{1}.push.fnames = {char(args.Mask)};
             matlabbatch{1}.spm.util.defs.out{1}.push.weight = {''};
-            matlabbatch{1}.spm.util.defs.out{1}.push.savedir.savepwd = 1;
-            matlabbatch{1}.spm.util.defs.out{1}.push.fov.file(1) = cfg_dep('Smooth: Smoothed Images', substruct('.','val', '{}',{8}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','files'));
+            matlabbatch{1}.spm.util.defs.out{1}.push.savedir.saveusr = {char(args.Target)};
+            matlabbatch{1}.spm.util.defs.out{1}.push.fov.file(1) = {char(args.FOV)};
             matlabbatch{1}.spm.util.defs.out{1}.push.preserve = 0;
             matlabbatch{1}.spm.util.defs.out{1}.push.fwhm = [0 0 0];
-            matlabbatch{1}.spm.util.defs.out{1}.push.prefix = '';
-
-            % move and rename forward deform img
-            matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.files(1) = cfg_dep('Deformations: Warped Images', substruct('.','val', '{}',{10}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','warped'));
-            matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveren.moveto(1) = cfg_dep('Make Directory: Make Directory ''<UNDEFINED>''', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','dir'));
-            matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveren.patrep.pattern = '(w)';
-            matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveren.patrep.repl = 'fwd_';
-            matlabbatch{2}.cfg_basicio.file_dir.file_ops.file_move.action.moveren.unique = false;
+            matlabbatch{1}.spm.util.defs.out{1}.push.prefix = 'w';
             
             spm_jobman('run', matlabbatch);
             
@@ -240,6 +253,7 @@ classdef AslPipeline < handle
         end
         
         function files = perfusionImage(args)
+            % returns 1 images
             arguments
                 args.Image  {mustBeFile};
                 args.Mask   {mustBeFile};
@@ -248,23 +262,29 @@ classdef AslPipeline < handle
             
             timestamp = datetime('now');
             
+            % make output name
+            [~, image_name, ~] = fileparts(args.Image);
+            outname = strcat(image_name, '_perfusion');
+            
             %% do spm processing
             spm('defaults', 'FMRI');
             spm_jobman('initcfg');
             clear matlabbatch;
             
             % image calculation
-            matlabbatch{1}.spm.util.imcalc.input(1) = char(args.Image);
-            matlabbatch{1}.spm.util.imcalc.input(2) = char(args.Mask);
-            matlabbatch{1}.spm.util.imcalc.output = 'perfusion_image';
-            matlabbatch{1}.spm.util.imcalc.outdir(1) = char(args.Target);
+            matlabbatch{1}.spm.util.imcalc.input = {
+                                                char(strcat(args.Image, ',1'))
+                                                char(strcat(args.Mask, ',1'))
+                                                };
+            matlabbatch{1}.spm.util.imcalc.output = char(outname);
+            matlabbatch{1}.spm.util.imcalc.outdir(1) = {char(args.Target)};
             matlabbatch{1}.spm.util.imcalc.expression = 'i1.*i2';
             matlabbatch{1}.spm.util.imcalc.var = struct('name', {}, 'value', {});
             matlabbatch{1}.spm.util.imcalc.options.dmtx = 0;
             matlabbatch{1}.spm.util.imcalc.options.mask = 0;
             matlabbatch{1}.spm.util.imcalc.options.interp = -7;
             matlabbatch{1}.spm.util.imcalc.options.dtype = 4;
-            
+                      
             spm_jobman('run', matlabbatch);
             
             % get files
@@ -272,15 +292,16 @@ classdef AslPipeline < handle
         end
         
         function files = quantPerfusion(args)
+            % returns 1 file
             arguments
                 args.Image  {mustBeFile};
-                args.Target {mustBeFolder};
+                args.Target {mustBeFolder} = pwd;
             end
             
             timestamp = datetime('now');
             
-            volume = spm_vol(args.Image);
-            value = spm_global(volume);
+            volume = spm_vol(char(args.Image));
+            value = spm_global(volume) * 100; % need to adjust factor
             
             writematrix(value, fullfile(args.Target, "perfusion.txt"));
             
